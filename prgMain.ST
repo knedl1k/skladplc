@@ -152,64 +152,31 @@ END_FUNCTION
 FUNCTION_BLOCK color_fb
 
    var_input
-      reset:bool;
       a0:int;
       a1:int;
    end_var
    var
-      h0:bool; // vjelo něco?
-			h1:int;	// buffer pro color
+			h:int:=-1;	// buffer pro color
    end_var
    var_output
-      color:int;
+      color:int:=-1;
    end_var
 
-  if reset then;
-    color:=-1;
-    h0:=0;
-		h1:=-1;
-    reset:=0;
-    else
-			
-			if color=-1 and h0=0 and a0<5000 and a1<5000 then;
-				//	nic nevjelo - ignoruj
+		if (h=0 or h=-1) and (a0>=5000 or a1>=5000) then;
+			// něco vjelo
+			if a0<5000 then;			//bílý pruh dole
+				h:=1;	
+			elsif a1<5000 then;		//bílý pruh nahoře
+				h:=2;
+			else									//žádný bílý pruh
+				h:=0;
 			end_if;
+		end_if;
 
-			if color=-1 and h0=0 and (a0>=5000 or a1>=5000) then;
-				// něco vjelo
-				h0:=1;
-
-				if a0<5000 then;			//bílý pruh dole
-					h1:=1;	
-				elsif a1<5000 then;		//bílý pruh nahoře
-					h1:=2;
-				else									//žádný bílý pruh
-					h1:=0;
-				end_if;
-			end_if;
-
-			if color:-1 and h0=1 and a0<5000 and a1<5000 then;
-				color:=h1;
-			end_if
-
-			(*
-      if a0<5000 and b0=1 then;
-         b0:=0;
-      elsif a0>=5000 then;
-         b0:=1;
-         something:=1;
-      end_if;
-      if a1<5000 and b1=1 then;
-         b1:=0;
-      elsif a0>=5000 then;
-         b1:=1;
-         something:=1;
-      end_if;
-      if color=-1 and a0<5000 and a1<5000 and something then;
-         color:=b0+2*b1;
-      end_if;
-			*)
-  end_if;
+		if not h=-1 and a0<5000 and a1<5000 then;
+			color:=h;
+			h:=-1;
+		end_if
 END_FUNCTION_BLOCK
 
 var_global
