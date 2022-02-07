@@ -7,6 +7,7 @@ Fungující:
 Kalibrace,
 Manuální ovládání,
 Pohon dopravníku palet + nakládací oblast,
+Vylozeni prazdne na dopravnik + vraceni plne palety na rameno + zvednuti a vsunuti ramena s paletou
 
 Dodělat:
 
