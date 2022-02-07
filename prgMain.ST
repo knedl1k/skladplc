@@ -35,7 +35,8 @@ PolohaHoriz: array[0..4] of udint:=[9403,6462,3629,12];
 Obsazenost:  array [0..9] of int:=[0,0,0,0,0,0,0,0,0,0]; 
 *)
 bar:int;
-umistit:bool:=0;
+//umistit:bool:=0;
+nalozeno:bool:=zk0;
 
 pozice0:int:=0;
 pozice1:int:=0;
@@ -111,31 +112,34 @@ FUNCTION umisti:bool       //SKORO, funkce, ktera ma jiz naplnene palety rozmist
       //
    END_IF;
 END_FUNCTION
-FUNCTION nakladani:bool    //DODELAT, funkce pro nosič palet. umístí prázdné palety na přepravník
-   VAR
-      nulovani:int:=1;
-   END_VAR
-   IF verti_ink < 3350 then;
+FUNCTION nakladani:bool //funkce pro posun dopravniku s obrokem do nakladaci oblasti
+   IF verti_ink < 3350 then; //dojede na vertikalni polohu nakladaci oblasti
       verti_do:=1;
    ELSE
       verti_do:=0;
       pomoc1:=1;
    END_IF;
-   IF horiz_ink < 10 then;
+   IF horiz_ink < 10 then; //dojede na horizontalni polohu nakladaci oblasti
       horiz_vl:=1;
    ELSE
       horiz_vl:=0;
    END_IF;
-   IF pomoc1 and not casovac1.Q then;
+   IF pomoc1 and not casovac1.Q then; //pokud je ve vertikalni poloze oblasti, zacne na 3s vysouvat rameno = paleta se posadi na dopravnik v nakl. obasti
       ram_vy:=1;
       casovac1(IN:=1, PT:=T#3s); //misto jednicky promenna - nulovani
-   ELSIF pomoc1 and casovac1.Q then;
-      nulovani:=1;
-      casovac1(IN:=2, PT:=T#3s);
-      casovac1(IN:=1, PT:=T#3s);
-      IF not casovac1.Q then
-         ram_vy:=0;
-         ram_vs:=1;
+   ELSIF nalozeno and casovac1.Q then; //pokud uzivatel stiskne tlacitko, ze barevny obrok vlozil, tak se paleta vrati zpet na rameno a to se zatahne
+      ram_vy:=0;
+      doprav_ve:=1;
+      casovac2(IN:=1, PT:=T#3s);
+      doprav_ve:=doprav_ve and not casovac2.Q;
+      IF verti_ink<3250 then;
+         verti_na:=1;
+      ELSE
+         verti_na:=0;
+      END_IF;
+      IF doprav_cidlo_pre and not doprav_cidlo_zad then;
+         casovac2(IN:=0, PT:=T#3s);
+         ram_vs:=ram_vs and not casovac2.Q;
       END_IF;
    END_IF;
 END_FUNCTION
