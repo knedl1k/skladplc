@@ -113,7 +113,7 @@ FUNCTION umisti:bool       //SKORO, funkce, ktera ma jiz naplnene palety rozmist
    END_IF;
 END_FUNCTION
 FUNCTION nakladani:bool //funkce pro posun dopravniku s obrokem do nakladaci oblasti
-   IF verti_ink < 3350 then; //dojede na vertikalni polohu nakladaci oblasti
+   IF verti_ink < 3250 then; //dojede na vertikalni polohu nakladaci oblasti
       verti_do:=1;
    ELSE
       verti_do:=0;
@@ -124,12 +124,16 @@ FUNCTION nakladani:bool //funkce pro posun dopravniku s obrokem do nakladaci obl
    ELSE
       horiz_vl:=0;
    END_IF;
-   IF pomoc1 and not casovac1.Q then; //pokud je ve vertikalni poloze oblasti, zacne na 3s vysouvat rameno = paleta se posadi na dopravnik v nakl. obasti
-      ram_vy:=1;
-      casovac1(IN:=1, PT:=T#3s); //misto jednicky promenna - nulovani
+   IF pomoc1 then; //pokud je ve vertikalni poloze oblasti, zacne na 3s vysouvat rameno = paleta se posadi na dopravnik v nakl. obasti
+      casovac1(IN:=1, PT:=T#3s);
+      ram_vy:=not casovac1.Q;
    END_IF;  
    IF nalozeno and casovac1.Q then; //pokud uzivatel stiskne tlacitko, ze barevny obrok vlozil, tak se paleta vrati zpet na rameno a to se zatahne
-      ram_vy:=0;
+      IF verti_ink<3350 then; //vylozi paletu na dopravnik
+      	verti_do:=1;
+      ELSE
+      	verti_do:=0;
+      END_IF;
       doprav_ve:=1;
       casovac2(IN:=1, PT:=T#3s);
       doprav_ve:=doprav_ve and not casovac2.Q;
