@@ -174,10 +174,19 @@ FUNCTION_BLOCK color_fb
 			if color=-1 and h0=0 and (a0>=5000 or a1>=5000) then;
 				// něco vjelo
 				h0:=1;
-				if a0<5000 then;
-					
+
+				if a0<5000 then;			//bílý pruh dole
+					h1:=1;	
+				elsif a1<5000 then;		//bílý pruh nahoře
+					h1:=2;
+				else									//žádný bílý pruh
+					h1:=0;
 				end_if;
 			end_if;
+
+			if color:-1 and h0=1 and a0<5000 and a1<5000 then;
+				color:=h1;
+			end_if
 
 			(*
       if a0<5000 and b0=1 then;
