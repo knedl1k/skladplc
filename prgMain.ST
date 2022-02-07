@@ -146,26 +146,40 @@ FUNCTION nakladani:bool //funkce pro posun dopravniku s obrokem do nakladaci obl
 END_FUNCTION
 
 FUNCTION_BLOCK color_fb
+
    var_input
       reset:bool;
       a0:int;
       a1:int;
    end_var
    var
-      b0:int;
-      b1:int;
-      something:bool;
+      h0:bool; // vjelo něco?
+			h1:int;	// buffer pro color
    end_var
    var_output
       color:int;
    end_var
+
   if reset then;
-    b0:=1;
-    b1:=1;
     color:=-1;
-    something:=0;
+    h0:=0;
+		h1:=-1;
     reset:=0;
     else
+			
+			if color=-1 and h0=0 and a0<5000 and a1<5000 then;
+				//	nic nevjelo - ignoruj
+			end_if;
+
+			if color=-1 and h0=0 and (a0>=5000 or a1>=5000) then;
+				// něco vjelo
+				h0:=1;
+				if a0<5000 then;
+					
+				end_if;
+			end_if;
+
+			(*
       if a0<5000 and b0=1 then;
          b0:=0;
       elsif a0>=5000 then;
@@ -181,8 +195,10 @@ FUNCTION_BLOCK color_fb
       if color=-1 and a0<5000 and a1<5000 and something then;
          color:=b0+2*b1;
       end_if;
+			*)
   end_if;
 END_FUNCTION_BLOCK
+
 var_global
 col:color_fb;
 dd:bool:=0;
