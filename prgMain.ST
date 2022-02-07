@@ -134,9 +134,9 @@ FUNCTION nakladani:bool //funkce pro posun dopravniku s obrokem do nakladaci obl
       ELSE
       	verti_do:=0;
       END_IF;
-      doprav_ve:=1;
+      //doprav_ve:=1;
       casovac2(IN:=1, PT:=T#3s);
-      doprav_ve:=doprav_ve and not casovac2.Q;
+      doprav_ve:=not casovac2.Q;
       IF verti_ink<3250 then;
          verti_na:=1;
       ELSE
