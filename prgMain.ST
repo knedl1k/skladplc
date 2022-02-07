@@ -127,7 +127,8 @@ FUNCTION nakladani:bool //funkce pro posun dopravniku s obrokem do nakladaci obl
    IF pomoc1 and not casovac1.Q then; //pokud je ve vertikalni poloze oblasti, zacne na 3s vysouvat rameno = paleta se posadi na dopravnik v nakl. obasti
       ram_vy:=1;
       casovac1(IN:=1, PT:=T#3s); //misto jednicky promenna - nulovani
-   ELSIF nalozeno and casovac1.Q then; //pokud uzivatel stiskne tlacitko, ze barevny obrok vlozil, tak se paleta vrati zpet na rameno a to se zatahne
+   END_IF;  
+   IF nalozeno and casovac1.Q then; //pokud uzivatel stiskne tlacitko, ze barevny obrok vlozil, tak se paleta vrati zpet na rameno a to se zatahne
       ram_vy:=0;
       doprav_ve:=1;
       casovac2(IN:=1, PT:=T#3s);
