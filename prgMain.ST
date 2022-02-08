@@ -1,3 +1,21 @@
+FUNCTION_BLOCK prazdne:bool //FUNKCE pro nabrani prazdnych palet a dovezeni je do nakladaci oblasti
+   var_input
+      reset:bool;
+      horiz:int;
+      verti:int;
+      a1:int;
+   end_var
+   var
+      
+   end_var
+   var_output
+      pozice:int;
+   end_var   
+
+   
+
+
+END_FUNCTION_BLOCK
 VAR_GLOBAL
 cidloAnalog0 at %XW34:int;
 cidloAnalog1 at %XW46:int;
@@ -26,7 +44,7 @@ misto:bool:=0;
 
 pomoc:bool;
 
-casovac, casovac1:TON;
+casovac, casovac1, casovac2:TON;
 
 
 (*
@@ -274,7 +292,33 @@ FUNCTION hybej:bool //funkce pro rozvoz naplněných palet do regálů
    doprav_do:=doprav_cidlo_zad AND doprav_do;
 
 END_FUNCTION
+FUNCTION prazdne:bool //FUNKCE pro nabrani prazdnych palet a dovezeni je do nakladaci oblasti
+   VAR
+      i:int:=0;
+      j:int:=0;
+      blokace:bool:=0;
+   END_VAR
+   IF not blokace then;
+      IF verti_ink<PolohaVerti[i] then;
+         verti_do:=1;
+      ELSE
+         verti_do:=0;
+         IF horiz_ink<PolohaHoriz[j] then;
+            horiz_vl:=1;
+         ELSE
+            horiz_vl:=0;
+            IF i<=2 AND j<=2 then;
+               j:=j+1;
+            ELSIF i<2 then;
+               i:=i+1;
+            ELSE
+               blokace:=1;
+            END_IF;
+         END_IF; 
+      END_IF;
+   END_IF;
 
+END_FUNCTION
 
 PROGRAM prgMain
 VAR
