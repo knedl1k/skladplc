@@ -26,14 +26,14 @@ misto:bool:=0;
 
 pomoc:bool;
 
-casovac, casovac1, casovac2:TON;
+casovac, casovac1:TON;
 
 
-(*
+
 PolohaVerti: array[0..4] of udint :=[3852,1892,204,3420];
 PolohaHoriz: array[0..4] of udint:=[9403,6462,3629,12];
 Obsazenost:  array [0..9] of int:=[0,0,0,0,0,0,0,0,0,0]; 
-*)
+
 bar:int;
 //umistit:bool:=0;
 nalozeno:bool:=zk0;
@@ -112,48 +112,26 @@ FUNCTION umisti:bool       //SKORO, funkce, ktera ma jiz naplnene palety rozmist
    END_IF;
 END_FUNCTION
 FUNCTION nakladani:bool //funkce pro posun dopravniku s obrokem do nakladaci oblasti
-   VAR
-      pomoc_verti:bool:=0;
-      pomoc_horiz:bool:=0;
-   END_VAR
-   (*
    IF verti_ink < 3250 then; //dojede na vertikalni polohu nakladaci oblasti
       verti_do:=1;
    ELSE
       verti_do:=0;
-      pomoc_verti:=1;
+      pomoc1:=1;
    END_IF;
-   *)
-   IF verti_ink > 3250 then; //dojede na vertikalni polohu nakladaci oblasti
-      verti_na:=1;
-   ELSE
-      verti_na:=0;
-      pomoc_verti:=1;
-   END_IF;
-   (*
    IF horiz_ink < 10 then; //dojede na horizontalni polohu nakladaci oblasti
       horiz_vl:=1;
    ELSE
-      pomoc
       horiz_vl:=0;
    END_IF;
-   *)
-   IF horiz_ink > 10 then; //dojede na horizontalni polohu nakladaci oblasti
-      horiz_vl:=1;
-   ELSE
-      horiz_vl:=0;
-      pomoc_horiz:=1;
-   END_IF;
-
-   IF pomoc_verti AND pomoc_horiz then; //pokud je ve vertikalni poloze oblasti, zacne na 3s vysouvat rameno = paleta se posadi na dopravnik v nakl. obasti
+   IF pomoc1 then; //pokud je ve vertikalni poloze oblasti, zacne na 3s vysouvat rameno = paleta se posadi na dopravnik v nakl. obasti
       casovac1(IN:=1, PT:=T#3s);
       ram_vy:=not casovac1.Q;
-   END_IF;
-   IF nalozeno and casovac1.Q then; //pokud uzivatel stiskne tlacitko NALOZENO, ze barevny obrok vlozil, tak se paleta vrati zpet na rameno a to se zatahne
-      IF verti_ink<3350 then;
-         verti_do:=1;
+   END_IF;  
+   IF nalozeno and casovac1.Q then; //pokud uzivatel stiskne tlacitko, ze barevny obrok vlozil, tak se paleta vrati zpet na rameno a to se zatahne
+      IF verti_ink<3350 then; //vylozi paletu na dopravnik
+      	verti_do:=1;
       ELSE
-         verti_do:=0;
+      	verti_do:=0;
       END_IF;
       //doprav_ve:=1;
       casovac2(IN:=1, PT:=T#3s);
@@ -171,47 +149,39 @@ FUNCTION nakladani:bool //funkce pro posun dopravniku s obrokem do nakladaci obl
 END_FUNCTION
 
 FUNCTION_BLOCK color_fb
+
    var_input
-      reset:bool;
       a0:int;
       a1:int;
    end_var
    var
-      b0:int;
-      b1:int;
-      something:bool;
+			h:int:=-1;	// buffer pro color
    end_var
    var_output
-      color:int;
+      color:int:=-1;
    end_var
-  if reset then;
-    b0:=1;
-    b1:=1;
-    color:=-1;
-    something:=0;
-    reset:=0;
-    else
-      if a0<5000 and b0=1 then;
-         b0:=0;
-      elsif a0>=5000 then;
-         b0:=1;
-         something:=1;
-      end_if;
-      if a1<5000 and b1=1 then;
-         b1:=0;
-      elsif a0>=5000 then;
-         b1:=1;
-         something:=1;
-      end_if;
-      if color=-1 and a0<5000 and a1<5000 and something then;
-         color:=b0+2*b1;
-      end_if;
-  end_if;
+
+		if (h=0 or h=-1) and (a0>=5000 or a1>=5000) then;
+			// něco vjelo
+			if a0<5000 then;			//bílý pruh dole
+				h:=1;	
+			elsif a1<5000 then;		//bílý pruh nahoře
+				h:=2;
+			else									//žádný bílý pruh
+				h:=0;
+			end_if;
+		end_if;
+
+		if not h=-1 and a0<5000 and a1<5000 then;
+			color:=h;
+			h:=-1;
+		end_if
 END_FUNCTION_BLOCK
+
 var_global
-   col:color_fb;
-   dd:bool:=0;
-   done:bool:=0;
+col:color_fb;
+dd:bool:=0;
+      done:bool:=0;
 end_var
 FUNCTION barva:int  //SKORO, funkce pro určení barvy + vypsání požadované barvy obroku na displej PLC
    barva:=-1;
@@ -289,6 +259,10 @@ FUNCTION prazdne:bool //FUNKCE pro nabrani prazdnych palet a dovezeni je do nakl
             horiz_vl:=1;
          ELSE
             horiz_vl:=0;
+            //udelat funkci, ktera bude jen vysouvat, nalozi, trochu zvedne (+50 na inkrementalni), a zatahne - pouziti tady + hybej()   
+
+
+
             IF i<=2 AND j<=2 then;
                j:=j+1;
             ELSIF i<2 then;
