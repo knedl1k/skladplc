@@ -1,21 +1,3 @@
-FUNCTION_BLOCK prazdne:bool //FUNKCE pro nabrani prazdnych palet a dovezeni je do nakladaci oblasti
-   var_input
-      reset:bool;
-      horiz:int;
-      verti:int;
-      a1:int;
-   end_var
-   var
-      
-   end_var
-   var_output
-      pozice:int;
-   end_var   
-
-   
-
-
-END_FUNCTION_BLOCK
 VAR_GLOBAL
 cidloAnalog0 at %XW34:int;
 cidloAnalog1 at %XW46:int;
