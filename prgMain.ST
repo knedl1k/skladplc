@@ -1,24 +1,24 @@
 VAR_GLOBAL
-cidloAnalog0 at %XW34:int;
-cidloAnalog1 at %XW46:int;
-cidlo_horiz at %X100.4:bool;
-cidlo_verti at %X100.7:bool;
-cidlo_rameno_zadni at %X10.7:bool;
-doprav_cidlo_zad at %X100.6:bool;
-doprav_cidlo_pre at %X100.5:bool;
-zk0 at %X101.0:bool;
-zk1 at %X101.1:bool;
+cidloAnalog0 at %XW34:int; //dolni cidlo na dopravniku - poznava barevny kod na palete
+cidloAnalog1 at %XW46:int; //horni cidlo na dopravniku - poznava barevny kod na palete
+cidlo_horiz at %X100.4:bool; //mechanicke cidlo na horizontalni ose prepravniku
+cidlo_verti at %X100.7:bool; //mechanicke cidlo na vertikalni ose prepravniku
+cidlo_rameno_zadni at %X10.7:bool; //mechanicke cidlo v zadni casti ramena prepravniku
+doprav_cidlo_zad at %X100.6:bool;  //svetelna brana dopravniku vzadu
+doprav_cidlo_pre at %X100.5:bool; // svetelna brana dopravniku vpredu
+zk0 at %X101.0:bool; //manualni input
+zk1 at %X101.1:bool; 
 zk2 at %X101.2:bool;
 zk3 at %X101.3:bool;
-doprav_do at %Y32.4:bool;//dopravnik, dovnitr
-doprav_ve at %Y32.5:bool;//dopravnik, ven
-horiz_vl at %Y32.6:bool;//horizontalni, vlevo:ccw
-horiz_vp at %Y32.7:bool;//horizontalni, vpravo:cw
-verti_do at %Y33.0:bool;//vertikalni, dolu
-verti_na at %Y33.1:bool;//vertikalni, nahoru
-ram_vy at %Y33.2:bool;//rameno, vysun
-ram_vs at %Y33.3:bool;//rameno, vsun
-horiz_ink:udint;
+doprav_do at %Y32.4:bool; //pohon dopravniku - dovnitr
+doprav_ve at %Y32.5:bool; //pohon dopravniku - ven
+horiz_vl at %Y32.6:bool; //horizontalni, vlevo:ccw
+horiz_vp at %Y32.7:bool; //horizontalni, vpravo:cw
+verti_do at %Y33.0:bool; //vertikalni, dolu
+verti_na at %Y33.1:bool; //vertikalni, nahoru
+ram_vy at %Y33.2:bool; //rameno, vysun
+ram_vs at %Y33.3:bool; //rameno, vsun
+horiz_ink:udint; 
 verti_ink:udint;
 cas at %S13.2:bool;
 kalibruj:bool:=0;
@@ -42,7 +42,7 @@ pozice1:int:=0;
 pozice2:int:=0;
 
 END_VAR
-FUNCTION kalibrace:bool  //HOTOVO, funkce na kalibraci
+FUNCTION kalibrace:bool  //HOTOVO, funkce na kalibraci jednotky
    IF not cidlo_rameno_zadni then;
       ram_vs:=1;
       else ram_vs:=0;
@@ -59,7 +59,7 @@ FUNCTION kalibrace:bool  //HOTOVO, funkce na kalibraci
       kalibrace:=1;
    END_IF;
 END_FUNCTION
-FUNCTION manualni:bool     //HOTOVO, funkce na manualni ovladani pomoci switche
+FUNCTION manualni:bool     //HOTOVO, funkce na manualni ovladani
    horiz_vp:=zk0 and not zk3;
    verti_na:=zk1 and not zk3;
    ram_vs:=zk2 and not zk3;
@@ -177,11 +177,10 @@ FUNCTION_BLOCK color_fb
 			h:=-1;
 		end_if
 END_FUNCTION_BLOCK
-
 var_global
-col:color_fb;
-dd:bool:=0;
-      done:bool:=0;
+   col:color_fb;
+   dd:bool:=0;
+   done:bool:=0;
 end_var
 FUNCTION barva:int  //SKORO, funkce pro určení barvy + vypsání požadované barvy obroku na displej PLC
    barva:=-1;
@@ -245,17 +244,17 @@ FUNCTION hybej:bool //funkce pro rozvoz naplněných palet do regálů
 
 END_FUNCTION
 FUNCTION prazdne:bool //FUNKCE pro nabrani prazdnych palet a dovezeni je do nakladaci oblasti
-   VAR
+   VAR 
       i:int:=0;
       j:int:=0;
       blokace:bool:=0;
    END_VAR
    IF not blokace then;
-      IF verti_ink<PolohaVerti[i] then;
+      IF verti_ink<PolohaVerti[i] then; //posune prepravnik na vertikalni uroven
          verti_do:=1;
       ELSE
          verti_do:=0;
-         IF horiz_ink<PolohaHoriz[j] then;
+         IF horiz_ink<PolohaHoriz[j] then; //posune prepravnik na horizontalni uroven
             horiz_vl:=1;
          ELSE
             horiz_vl:=0;
@@ -286,19 +285,19 @@ verti_ink:=inkrementalni_verti;
 pomoc:=0;
 cidlo0:=cidloAnalog0;
 cidlo1:=cidloAnalog1;
-IF not kalibruj then;     //uvodni kalibrace a pak uvolni system pro dalsi pouziti
-   kalibruj:=kalibrace(); //funkce na uvodni kalibraci jednotky
+IF not kalibruj then;     //uvodni kalibrace, zajisti, ze po spusteni se system vzdy nejdrive zkalibruje
+   kalibruj:=kalibrace(); 
 ELSE
-   IF casovac.Q then;
+   IF casovac.Q then; //seridi nejdrive inkrementalni snimace, po te program dale pokracuje
       ridSlovo:=1;
       ridSlovo1:=1;
       pomoc:=1;
       //manualni();
       hybej();
    ELSE
-      ridSlovo:=2;        //serizeni inkrementalnich snimacu
+      ridSlovo:=2;        
       ridSlovo1:=2;
-      casovac(IN:=1, PT:=T#1s);
+      casovac(IN:=1, PT:=T#1s); //prodleva pro korektni serizeni snimacu
    END_IF;
 END_IF;
 END_PROGRAM
