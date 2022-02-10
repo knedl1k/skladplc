@@ -3,7 +3,8 @@ cidloAnalog0 at %XW34:int; //dolni cidlo na dopravniku - poznava barevny kod na 
 cidloAnalog1 at %XW46:int; //horni cidlo na dopravniku - poznava barevny kod na palete
 cidlo_horiz at %X100.4:bool; //mechanicke cidlo na horizontalni ose prepravniku
 cidlo_verti at %X100.7:bool; //mechanicke cidlo na vertikalni ose prepravniku
-cidlo_rameno_zadni at %X10.7:bool; //mechanicke cidlo v zadni casti ramena prepravniku
+cidlo_rameno_zad at %X10.7:bool; //mechanicke cidlo v zadni casti ramena prepravniku
+cidlo_rameno_pre at %X10.6:bool; //mechanicke cidlo v predni casti ramena prepravniku
 doprav_cidlo_zad at %X100.6:bool;  //svetelna brana dopravniku vzadu
 doprav_cidlo_pre at %X100.5:bool; // svetelna brana dopravniku vpredu
 zk0 at %X101.0:bool; //manualni input
@@ -30,9 +31,9 @@ casovac, casovac1:TON;
 
 
 
-PolohaVerti: array[0..4] of udint :=[3852,1892,204,3420];
+PolohaVerti: array[0..4] of udint:=[3852,1892,204,3420];
 PolohaHoriz: array[0..4] of udint:=[9403,6462,3629,12];
-Obsazenost:  array [0..9] of int:=[0,0,0,0,0,0,0,0,0,0]; 
+Obsazenost:  array[0..9] of int:=[0,0,0,0,0,0,0,0,0,0]; 
 
 bar:int;
 //umistit:bool:=0;
@@ -43,7 +44,7 @@ pozice2:int:=0;
 
 END_VAR
 FUNCTION kalibrace:bool  //HOTOVO, funkce na kalibraci jednotky
-   IF not cidlo_rameno_zadni then;
+   IF not cidlo_rameno_zad then;
       ram_vs:=1;
       else ram_vs:=0;
       IF not cidlo_horiz then;
@@ -55,7 +56,7 @@ FUNCTION kalibrace:bool  //HOTOVO, funkce na kalibraci jednotky
          else verti_na:=0;
       END_IF;
    END_IF;
-   IF cidlo_rameno_zadni AND cidlo_horiz AND cidlo_verti then;
+   IF cidlo_rameno_zad AND cidlo_horiz AND cidlo_verti then;
       kalibrace:=1;
    END_IF;
 END_FUNCTION
@@ -67,51 +68,7 @@ FUNCTION manualni:bool     //HOTOVO, funkce na manualni ovladani
    verti_do:=zk1 and  zk3;
    ram_vy:=zk2 and  zk3;
 END_FUNCTION
-FUNCTION umisti:bool       //SKORO, funkce, ktera ma jiz naplnene palety rozmistovat do regalu
-   IF cidloAnalog0<cidloAnalog1 then;
-      IF verti_ink < 1892 then;
-         verti_do:=1;
-      ELSE
-         verti_do:=0;
-      END_IF;
-      IF horiz_ink < 6462 then;
-         horiz_vl:=1;
-      ELSE
-         horiz_vl:=0;
-      END_IF;
-      Obsazenost[pozice1]:=1;
-      //
-   ELSIF (cidloAnalog0<3600 AND cidloAnalog1<3600) then;
-      IF verti_ink < 3852 then;
-         verti_do:=1;
-      ELSE
-         verti_do:=0;
-      END_IF;
-      IF horiz_ink < 9403 then;
-         horiz_vl:=1;
-      ELSE
-         horiz_vl:=0;
-      END_IF;
-      Obsazenost[pozice0]:=1;
-
-      //
-   ELSIF cidloAnalog0>cidloAnalog1  then;  //
-      IF verti_ink < 204 then;
-         verti_do:=1;
-      ELSE
-         verti_do:=0;
-      END_IF;
-      IF horiz_ink < 3629 then;
-         horiz_vl:=1;
-      ELSE
-         horiz_vl:=0;
-      END_IF;
-      Obsazenost[pozice2]:=1;
-
-      //
-   END_IF;
-END_FUNCTION
-FUNCTION nakladani:bool //funkce pro posun dopravniku s obrokem do nakladaci oblasti
+FUNCTION nakladani:bool //funkce pro posun jiz nalozene prazdne palety do dopravnikove oblasti + odebrani naplnene palety
    IF verti_ink < 3250 then; //dojede na vertikalni polohu nakladaci oblasti
       verti_do:=1;
    ELSE
@@ -149,18 +106,16 @@ FUNCTION nakladani:bool //funkce pro posun dopravniku s obrokem do nakladaci obl
 END_FUNCTION
 
 FUNCTION_BLOCK color_fb
-
    var_input
       a0:int;
       a1:int;
    end_var
    var
-			h:int:=-1;	// buffer pro color
+		h:int:=-1;	// buffer pro color
    end_var
    var_output
       color:int:=-1;
    end_var
-
 		if (h=0 or h=-1) and (a0>=5000 or a1>=5000) then;
 			// něco vjelo
 			if a0<5000 then;			//bílý pruh dole
@@ -171,7 +126,6 @@ FUNCTION_BLOCK color_fb
 				h:=0;
 			end_if;
 		end_if;
-
 		if not h=-1 and a0<5000 and a1<5000 then;
 			color:=h;
 			h:=-1;
@@ -237,43 +191,112 @@ FUNCTION hybej:bool //funkce pro rozvoz naplněných palet do regálů
       end_if;
       //ceka na potvrzeni vlozeni - stisk tlacitka
    END_IF;
-   //IF not doprav_cidlo_zad then;
-   //   doprav_do:=0;
-   //END_IF;
    doprav_do:=doprav_cidlo_zad AND doprav_do;
 
 END_FUNCTION
-FUNCTION prazdne:bool //FUNKCE pro nabrani prazdnych palet a dovezeni je do nakladaci oblasti
+(*
+FUNCTION_BLOCK rameno:bool
+  var_input
+      zvedni:bool;
+      poloz:bool;
+      verti_ink:udint;
+   end_var
+   var
+      verti:udint:=verti_ink;
+      //pomoc:bool:=0;
+   end_var
+   var_output
+      hotovo:bool;
+   end_var 
+   IF zvedni AND not hotovo then;
+      IF verti<verti_ink+50 then;
+         verti_na:=1;
+      ELSE
+         verti_na:=0;
+      END_IF;
+      ram_vs:= not cidlo_rameno_zad;
+      IF cidlo_rameno_zad then;
+         pomoc:=1;
+         hotovo:=1;
+      END_IF;
+   END_IF;
+   IF poloz AND not hotovo then;
+      IF verti<verti_ink-50 then;
+         verti_do:=1;
+      ELSE
+         verti_do:=0;
+      END_IF;
+      ram_vs:= not cidlo_rameno_zad;
+      IF cidlo_rameno_zad then;
+         pomoc:=1;
+         hotovo:=1;
+      END_IF;
+   END_IF;
+END_FUNCTION_BLOCK
+*)
+FUNCTION_BLOCK prazdne_FCB:bool //FCB pro nabrani prazdnych palet a dovezeni je do nakladaci oblasti
+   VAR_INPUT
+      i:int;
+      j:int;
+   END_VAR
    VAR 
+   (*
       i:int:=0;
       j:int:=0;
       blokace:bool:=0;
+   *)
+      verti:udint;
    END_VAR
-   IF not blokace then;
+   VAR_OUTPUT
+      probehlo:bool:=0;
+   END_VAR
+   //IF not blokace then;
       IF verti_ink<PolohaVerti[i] then; //posune prepravnik na vertikalni uroven
          verti_do:=1;
       ELSE
          verti_do:=0;
+         verti:=verti_ink;
          IF horiz_ink<PolohaHoriz[j] then; //posune prepravnik na horizontalni uroven
             horiz_vl:=1;
          ELSE
             horiz_vl:=0;
-            //udelat funkci, ktera bude jen vysouvat, nalozi, trochu zvedne (+50 na inkrementalni), a zatahne - pouziti tady + hybej()   
-
-
-
-            IF i<=2 AND j<=2 then;
-               j:=j+1;
-            ELSIF i<2 then;
-               i:=i+1;
+            ram_vy:= not cidlo_rameno_pre; //vysune rameno
+            IF verti<verti_ink+50 then; //nadzvedne rameno uz s paletou
+               verti_na:=1;
             ELSE
-               blokace:=1;
+               verti_na:=0;
+               ram_vs:= not cidlo_rameno_zad; //zasune rameno
             END_IF;
+            probehlo:=1;
          END_IF; 
       END_IF;
+   //END_IF;
+END_FUNCTION_BLOCK
+VAR_GLOBAL
+   nabirani:=prazdne_FCB;
+END_VAR
+FUNCTION dovez_prazdne:bool
+   VAR
+      i:int:=0;
+      j:int:=0;
+      probehlo:bool=0;
+      blokace:bool=0;
+   END_VAR
+   IF probehlo AND not blokace then;
+      nakladani();
+      IF i<=2 AND j<=2 then;
+         j:=j+1;
+      ELSIF i<2 then;
+         i:=i+1;
+      ELSE
+         blokace:=1;
+      END_IF; 
+   ELSE
+      nabirani(i:=i, j:=j, )
    END_IF;
 
 END_FUNCTION
+
 
 PROGRAM prgMain
 VAR
