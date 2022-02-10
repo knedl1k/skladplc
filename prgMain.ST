@@ -108,10 +108,10 @@ FUNCTION nakladani:bool //funkce pro posun jiz nalozene prazdne palety do doprav
       ELSE
          verti_na:=0;
       END_IF;
-      IF doprav_cidlo_pre and not doprav_cidlo_zad then;
-         casovac2(IN:=0, PT:=T#3s);
-         ram_vs:=ram_vs and not casovac2.Q;
-      END_IF;
+      //IF doprav_cidlo_pre and not doprav_cidlo_zad then;
+         //casovac2(IN:=0, PT:=T#3s);
+         ram_vs:=not cidlo_rameno_zad;
+      //END_IF;
    END_IF;
 END_FUNCTION
 
@@ -121,26 +121,27 @@ FUNCTION_BLOCK color_fb
       a1:int;
    end_var
    var
-		h:int:=-1;	// buffer pro color
+      h:int:=-1; // buffer pro color
    end_var
    var_output
       color:int:=-1;
    end_var
-		if (h=0 or h=-1) and (a0>=5000 or a1>=5000) then;
-			// něco vjelo
-			if a0<5000 then;			//bílý pruh dole
-				h:=1;	
-			elsif a1<5000 then;		//bílý pruh nahoře
-				h:=2;
-			else									//žádný bílý pruh
-				h:=0;
-			end_if;
-		end_if;
-		if not h=-1 and a0<5000 and a1<5000 then;
-			color:=h;
-			h:=-1;
-		end_if
+      if (h=0 or h=-1) and (a0>=5000 or a1>=5000) then;
+	 // něco vjelo
+	 if a0<5000 then; //bílý pruh dole
+	    h:=1;	
+	 elsif a1<5000 then; //bílý pruh nahoře
+	    h:=2;
+	 else //žádný bílý pruh
+	    h:=0;
+	 end_if;
+      end_if;
+      if not h=-1 and a0<5000 and a1<5000 then;
+	 color:=h;
+	 h:=-1;
+      end_if;
 END_FUNCTION_BLOCK
+
 var_global
    col:color_fb;
    dd:bool:=0;
@@ -163,45 +164,60 @@ END_FUNCTION
 FUNCTION hybej:bool //funkce pro rozvoz naplněných palet do regálů
    VAR
       nakladej:bool:=0;
+      verti:udint:=verti_ink;
+      horiz:udint:=horiz_ink;
+      pomoc:bool:=0;
+      pomoc1:bool:=0;
    END_VAR
+   IF verti < 3250 then; //dojede na vertikalni polohu nakladaci oblasti
+      verti_do:=1;
+   ELSIF verti > 3250 then;
+      verti_na:=1;
+   ELSE
+      verti_do:=0;
+      verti_na:=0;
+      pomoc1:=1;
+   END_IF;
+   IF horiz < 10 then; //dojede na horizontalni polohu nakladaci oblasti
+      horiz_vl:=1;
+   ELSIF horiz > 10 then;
+      horiz_vp:=1;
+   ELSE
+      horiz_vl:=0;
+      horiz_vp:=0;
+      pomoc:=1;
+   END_IF; 
+   ram_vy:=not cidlo_rameno_pre and pomoc and pomoc1; //pokud je v poloze oblasti, zacne se vysouvat rameno = paleta se posadi na dopravnik v nakl. obasti
    IF not doprav_cidlo_pre AND doprav_cidlo_zad then;
       doprav_do:=1;
       //sken barvy - vypis na obrazovku
-      //bar:=barva();
-      if not col.color=-1 then;
-        col(reset:=1);
-      end_if;
-      if col.color=-1 then;
-         col(a0:=cidloAnalog0,a1:=cidloAnalog1);
-         done:=0;
-      else
-         done:=1;
-      end_if;
-      if col.color=1 then;
-         dd:=1;
-      end_if;
-      if not col.color=-1 then;
-         IF (umistit) then;
-            IF not doprav_cidlo_zad then;
-               doprav_ve:=1;
-               doprav_ve:=doprav_cidlo_pre AND doprav_ve;
-               nakladej:=nakladani();
-               IF nakladej then;
-                  umisti();
-               END_IF;
-            END_IF;
-            IF (col.color = 0) then;
 
-            ELSIF (col.color = 1) then;
-
-            ELSIF (col.color = 2) then;
-
-            END_IF;
+      IF nalozeno then; //pokud uzivatel stiskne tlacitko, ze barevny obrok vlozil, tak se paleta vrati zpet na rameno a to se zatahne
+         IF verti_ink<3150 then; //vylozi paletu na dopravnik
+            verti_na:=1;
+         ELSE
+            verti_na:=0;
          END_IF;
-      end_if;
-      //ceka na potvrzeni vlozeni - stisk tlacitka
+         //doprav_ve:=1;
+         //casovac2(IN:=1, PT:=T#3s);
+         //doprav_ve:=not casovac2.Q;
+         doprav_ve:= doprav_cidlo_pre;
+         IF verti_ink<3250 then;
+            verti_na:=1;
+         ELSE
+            verti_na:=0;
+         END_IF;
+         IF doprav_cidlo_pre and not doprav_cidlo_zad then;
+            casovac2(IN:=0, PT:=T#3s);
+            ram_vs:=ram_vs and not casovac2.Q;
+         END_IF;
+      END_IF;   
    END_IF;
-   doprav_do:=doprav_cidlo_zad AND doprav_do;
+   //doprav_do:=doprav_cidlo_zad AND doprav_do;
+   
+
+
+
 
 END_FUNCTION
 (*
