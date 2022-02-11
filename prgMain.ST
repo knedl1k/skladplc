@@ -142,6 +142,9 @@ var_global
    dd:bool:=0;
    done:bool:=0;
 end_var
+
+//legacy useless funkce
+(*
 FUNCTION barva:int  //SKORO, funkce pro určení barvy + vypsání požadované barvy obroku na displej PLC
    barva:=-1;
       IF (cidloAnalog0=31500 AND cidloAnalog0>cidloAnalog1) then; //bila, nahore bila
@@ -155,6 +158,8 @@ FUNCTION barva:int  //SKORO, funkce pro určení barvy + vypsání požadované 
          barva:=2;
       END_IF;
 END_FUNCTION
+*)
+
 FUNCTION hybej:bool //funkce pro rozvoz naplněných palet do regálů
    VAR
       nakladej:bool:=0;
@@ -182,10 +187,21 @@ FUNCTION hybej:bool //funkce pro rozvoz naplněných palet do regálů
       pomoc:=1;
    END_IF; 
    ram_vy:=not cidlo_rameno_pre and pomoc and pomoc1; //pokud je v poloze oblasti, zacne se vysouvat rameno = paleta se posadi na dopravnik v nakl. obasti
-   IF not doprav_cidlo_pre AND doprav_cidlo_zad then;
+	 //Adamec je idiot a neumí rozdělit dlouhou funkci do víc funkcí aby to dávalo smysl #1
+   
+	 IF not doprav_cidlo_pre AND doprav_cidlo_zad then;
       doprav_do:=1;
       //sken barvy - vypis na obrazovku
-
+			col(a0:=cidloAnalog0,a1:=cidloAnalog1);
+			case col.color of
+				0:
+					displejBarva:="bílá";
+				1:
+					displajBarva:="červená";
+				2:
+					displajBarva:="modrá";
+			end_case;
+			
       IF nalozeno then; //pokud uzivatel stiskne tlacitko, ze barevny obrok vlozil, tak se paleta vrati zpet na rameno a to se zatahne
          IF verti_ink<3150 then; //vylozi paletu na dopravnik
             verti_na:=1;
@@ -205,8 +221,11 @@ FUNCTION hybej:bool //funkce pro rozvoz naplněných palet do regálů
             casovac2(IN:=0, PT:=T#3s);
             ram_vs:=ram_vs and not casovac2.Q;
          END_IF;
-      END_IF;   
-   END_IF;
+      END_IF;
+			else
+				displajBarva:="neznámá"; //před čtením barvy, nastav výpis na "neznámá"
+   END_IF;	//Adamec je idiot a neumí rozdělit dlouhou funkci do víc funkcí aby to dávalo smysl #2
+
    //doprav_do:=doprav_cidlo_zad AND doprav_do;
 END_FUNCTION
 (*
