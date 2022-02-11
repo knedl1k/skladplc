@@ -24,6 +24,7 @@ verti_ink:udint;
 cas at %S13.2:bool;
 kalibruj:bool:=0;
 misto:bool:=0;
+displejBarva:string;
 
 casovac:TON;
 
