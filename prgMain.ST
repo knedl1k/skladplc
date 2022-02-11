@@ -22,18 +22,13 @@ ram_vs at %Y33.3:bool; //rameno, vsun
 horiz_ink:udint; 
 verti_ink:udint;
 cas at %S13.2:bool;
+
 kalibruj:bool:=0;
-misto:bool:=0;
+
 displejBarva:string;
-
 casovac:TON;
-
 PolohaVerti: array[0..4] of udint:=[3852,1892,204,3420];
 PolohaHoriz: array[0..4] of udint:=[9403,6462,3629,12];
-Obsazenost:  array[0..9] of int:=[0,0,0,0,0,0,0,0,0,0]; 
-
-bar:int;
-//umistit:bool:=0;
 nalozeno:bool:=zk0;
 
 END_VAR
@@ -91,9 +86,9 @@ FUNCTION nakladani:bool //funkce pro posun jiz nalozene prazdne palety do doprav
    ram_vy:=not cidlo_rameno_pre and pomoc and pomoc1; //pokud je v poloze oblasti, zacne se vysouvat rameno = paleta se posadi na dopravnik v nakl. obasti
    IF nalozeno then; //pokud uzivatel stiskne tlacitko, ze barevny obrok vlozil, tak se paleta vrati zpet na rameno a to se zatahne
       IF verti_ink<3150 then; //vylozi paletu na dopravnik
-      	verti_na:=1;
+         verti_na:=1;
       ELSE
-      	verti_na:=0;
+         verti_na:=0;
       END_IF;
       //doprav_ve:=1;
       //casovac2(IN:=1, PT:=T#3s);
@@ -125,7 +120,7 @@ FUNCTION_BLOCK color_fb
    if (h=0 or h=-1) and (a0>=5000 or a1>=5000) then;
      // něco vjelo
      if a0<5000 then; //bílý pruh dole
-       h:=1;	
+       h:=1;   
      elsif a1<5000 then; //bílý pruh nahoře
        h:=2;
      else //žádný bílý pruh
@@ -143,22 +138,6 @@ var_global
    done:bool:=0;
 end_var
 
-//legacy useless funkce
-(*
-FUNCTION barva:int  //SKORO, funkce pro určení barvy + vypsání požadované barvy obroku na displej PLC
-   barva:=-1;
-      IF (cidloAnalog0=31500 AND cidloAnalog0>cidloAnalog1) then; //bila, nahore bila
-         //vypsat na displej BILA
-         barva:=0;
-      ELSIF (cidloAnalog1=31500 AND cidloAnalog0<cidloAnalog1) then; //cervena, dole bila
-         //vypsat na displej CERVENA
-         barva:=1;
-      ELSIF (cidloAnalog0=31500 AND cidloAnalog0=cidloAnalog1) then; //modra, nikde bila
-         //vypsat na displej MODRA
-         barva:=2;
-      END_IF;
-END_FUNCTION
-*)
 
 FUNCTION hybej:bool //funkce pro rozvoz naplněných palet do regálů
    VAR
@@ -188,30 +167,27 @@ FUNCTION hybej:bool //funkce pro rozvoz naplněných palet do regálů
       pomoc:=1;
    END_IF; 
    ram_vy:=not cidlo_rameno_pre and pomoc and pomoc1; //pokud je v poloze oblasti, zacne se vysouvat rameno = paleta se posadi na dopravnik v nakl. obasti
-	 //Adamec je idiot a neumí rozdělit dlouhou funkci do víc funkcí aby to dávalo smysl #1
+
    
-	 IF not doprav_cidlo_pre AND doprav_cidlo_zad then;
+   IF not doprav_cidlo_pre AND doprav_cidlo_zad then;
       doprav_do:=1;
       //sken barvy - vypis na obrazovku
-			col(a0:=cidloAnalog0,a1:=cidloAnalog1);
-			case col.color of
-				0:
-					displejBarva:="bílá";
-				1:
-					displajBarva:="červená";
-				2:
-					displajBarva:="modrá";
-			end_case;
-			
+         col(a0:=cidloAnalog0,a1:=cidloAnalog1);
+         case col.color of
+            0:
+               displejBarva:="bílá";
+            1:
+               displejBarva:="červená";
+            2:
+               displejBarva:="modrá";
+         end_case;
+         
       IF nalozeno then; //pokud uzivatel stiskne tlacitko, ze barevny obrok vlozil, tak se paleta vrati zpet na rameno a to se zatahne
          IF verti_ink<3150 then; //vylozi paletu na dopravnik
             verti_na:=1;
          ELSE
             verti_na:=0;
          END_IF;
-         //doprav_ve:=1;
-         //casovac2(IN:=1, PT:=T#3s);
-         //doprav_ve:=not casovac2.Q;
          doprav_ve:= doprav_cidlo_pre;
          IF verti_ink<3250 then;
             verti_na:=1;
@@ -219,8 +195,7 @@ FUNCTION hybej:bool //funkce pro rozvoz naplněných palet do regálů
             verti_na:=0;
          END_IF;
          IF doprav_cidlo_pre and not doprav_cidlo_zad then;
-            casovac2(IN:=0, PT:=T#3s);
-            ram_vs:=ram_vs and not casovac2.Q;
+            ram_vs:=not cidlo_rameno_zad;
          END_IF;
       END_IF;
 			elsif displayInited=0 then;
@@ -228,7 +203,7 @@ FUNCTION hybej:bool //funkce pro rozvoz naplněných palet do regálů
 				displayInited:=1;
    END_IF;	//Adamec je idiot a neumí rozdělit dlouhou funkci do víc funkcí aby to dávalo smysl #2
 
-   //doprav_do:=doprav_cidlo_zad AND doprav_do;
+   doprav_do:=doprav_cidlo_zad AND doprav_do;
 END_FUNCTION
 (*
 FUNCTION_BLOCK rameno:bool
