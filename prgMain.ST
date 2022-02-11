@@ -144,14 +144,14 @@ end_var
 FUNCTION barva:int  //SKORO, funkce pro určení barvy + vypsání požadované barvy obroku na displej PLC
    barva:=-1;
       IF (cidloAnalog0=31500 AND cidloAnalog0>cidloAnalog1) then; //bila, nahore bila
-        //vypsat na displej BILA
-        barva:=0;
+         //vypsat na displej BILA
+         barva:=0;
       ELSIF (cidloAnalog1=31500 AND cidloAnalog0<cidloAnalog1) then; //cervena, dole bila
-        //vypsat na displej CERVENA
-        barva:=1;
+         //vypsat na displej CERVENA
+         barva:=1;
       ELSIF (cidloAnalog0=31500 AND cidloAnalog0=cidloAnalog1) then; //modra, nikde bila
-        //vypsat na displej MODRA
-        barva:=2;
+         //vypsat na displej MODRA
+         barva:=2;
       END_IF;
 END_FUNCTION
 FUNCTION hybej:bool //funkce pro rozvoz naplněných palet do regálů
