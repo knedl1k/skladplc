@@ -167,6 +167,7 @@ FUNCTION hybej:bool //funkce pro rozvoz naplněných palet do regálů
       horiz:udint:=horiz_ink;
       pomoc:bool:=0;
       pomoc1:bool:=0;
+			displayInited:=0;
    END_VAR
    IF verti < 3250 then; //dojede na vertikalni polohu nakladaci oblasti
       verti_do:=1;
@@ -222,8 +223,9 @@ FUNCTION hybej:bool //funkce pro rozvoz naplněných palet do regálů
             ram_vs:=ram_vs and not casovac2.Q;
          END_IF;
       END_IF;
-			else
+			elsif displayInited=0 then;
 				displajBarva:="neznámá"; //před čtením barvy, nastav výpis na "neznámá"
+				displayInited:=1;
    END_IF;	//Adamec je idiot a neumí rozdělit dlouhou funkci do víc funkcí aby to dávalo smysl #2
 
    //doprav_do:=doprav_cidlo_zad AND doprav_do;
