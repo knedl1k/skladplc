@@ -149,7 +149,7 @@ FUNCTION hybej:bool //funkce pro rozvoz naplněných palet do regálů
          END_IF;
       END_IF;
          elsif displayInited=0 then;
-            displajBarva:="neznámá"; //před čtením barvy, nastav výpis na "neznámá"
+            displejBarva:="neznámá"; //před čtením barvy, nastav výpis na "neznámá"
             displayInited:=1;
    END_IF;
 
