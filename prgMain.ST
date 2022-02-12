@@ -24,6 +24,7 @@ verti_ink:udint;
 cas at %S13.2:bool;
 
 kalibruj:bool:=0;
+odvezl:bool:=0;
 
 displejBarva:string;
 casovac:TON;
@@ -57,93 +58,36 @@ FUNCTION manualni:bool     //HOTOVO, funkce na manualni ovladani
    verti_do:=zk1 and  zk3;
    ram_vy:=zk2 and  zk3;
 END_FUNCTION
-FUNCTION_BLOCK color_fb
-   var_input
+FUNCTION_BLOCK color_fb //FCB na poznávání barevného kódování na boku palet
+   VAR_INPUT
       a0:int;
       a1:int;
-   end_var
-   var
+   END_VAR
+   VAR
       h:int:=-1; // buffer pro color
-   end_var
-   var_output
+   END_VAR
+   VAR_OUTPUT
       color:int:=-1;
-   end_var
-   if (h=0 or h=-1) and (a0>=5000 or a1>=5000) then;
-     // něco vjelo
-     if a0<5000 then; //bílý pruh dole
-       h:=1;   
-     elsif a1<5000 then; //bílý pruh nahoře
-       h:=2;
-     else //žádný bílý pruh
-       h:=0;
-     end_if;
-   end_if;
-   if not h=-1 and a0<5000 and a1<5000 then;
-     color:=h;
-     h:=-1;
-   end_if //FCB na poznávání barevného kódování na boku palet
+   END_VAR
+   IF (h=0 or h=-1) and (a0>=5000 or a1>=5000) then; // něco vjelo
+      IF a0<5000 then; //bílý pruh dole
+         h:=1;   
+      ELSIF a1<5000 then; //bílý pruh nahoře
+         h:=2;
+      ELSE //žádný bílý pruh
+         h:=0;
+      END_IF;
+   END_IF;
+   IF not h=-1 AND a0<5000 AND a1<5000 then;
+      color:=h;
+      h:=-1;
+   END_IF;
 END_FUNCTION_BLOCK
-var_global
+VAR_GLOBAL
    col:color_fb;
    dd:bool:=0;
    done:bool:=0;
-end_var
-
-FUNCTION_BLOCK prazdne_FCB:bool //FCB pro nabrani prazdnych palet a dovezeni je do nakladaci oblasti
-   VAR_INPUT
-      i:int;
-      j:int;
-   END_VAR
-   VAR 
-      verti:udint;
-   END_VAR
-   VAR_OUTPUT
-      probehlo:bool:=0;
-   END_VAR
-      IF verti_ink<PolohaVerti[i] then; //posune prepravnik na vertikalni uroven
-         verti_do:=1;
-      ELSE
-         verti_do:=0;
-         verti:=verti_ink;
-         IF horiz_ink<PolohaHoriz[j] then; //posune prepravnik na horizontalni uroven
-            horiz_vl:=1;
-         ELSE
-            horiz_vl:=0;
-            ram_vy:= not cidlo_rameno_pre; //vysune rameno
-            IF verti<verti_ink+50 then; //nadzvedne rameno uz s paletou
-               verti_na:=1;
-            ELSE
-               verti_na:=0;
-               ram_vs:= not cidlo_rameno_zad; //zasune rameno
-            END_IF;
-            probehlo:=1;
-         END_IF; 
-      END_IF;
-END_FUNCTION_BLOCK
-VAR_GLOBAL
-   nabirani:=prazdne_FCB;
 END_VAR
-
-FUNCTION dovez_prazdne:bool
-   VAR
-      i:int:=0;
-      j:int:=0;
-      //probehlo:bool=0;
-      blokace:bool=0;
-   END_VAR
-   IF nabirani.probehlo AND not blokace then;
-      hybej();
-      IF i<=2 AND j<=2 then;
-         j:=j+1;
-      ELSIF i<2 then;
-         i:=i+1;
-      ELSE
-         blokace:=1;
-      END_IF; 
-   ELSE
-      nabirani(i:=i, j:=j);
-   END_IF;
-END_FUNCTION
 
 FUNCTION hybej:bool //funkce pro rozvoz naplněných palet do regálů
    VAR
@@ -174,20 +118,17 @@ FUNCTION hybej:bool //funkce pro rozvoz naplněných palet do regálů
    END_IF; 
    ram_vy:=not cidlo_rameno_pre and pomoc and pomoc1; //pokud je v poloze oblasti, zacne se vysouvat rameno = paleta se posadi na dopravnik v nakl. obasti
    //1. část
-   
    IF not doprav_cidlo_pre AND doprav_cidlo_zad then;
       doprav_do:=1;
-      //sken barvy - vypis na obrazovku
-         col(a0:=cidloAnalog0,a1:=cidloAnalog1);
-         case col.color of
-            0:
-               displejBarva:="bílá";
-            1:
-               displejBarva:="červená";
-            2:
-               displejBarva:="modrá";
-         end_case;
-         
+      col(a0:=cidloAnalog0,a1:=cidloAnalog1); //sken barvy
+      CASE col.color OF //vypise pozadovanou barvu na displej PLC - nutne dodelat
+         0:
+            displejBarva:="bílá";
+         1:
+            displejBarva:="červená";
+         2:
+            displejBarva:="modrá";
+      END_CASE;
       IF nalozeno then; //pokud uzivatel stiskne tlacitko, ze barevny obrok vlozil, tak se paleta vrati zpet na rameno a to se zatahne
          IF verti_ink<3150 then; //vylozi paletu na dopravnik
             verti_na:=1;
@@ -204,13 +145,119 @@ FUNCTION hybej:bool //funkce pro rozvoz naplněných palet do regálů
             ram_vs:=not cidlo_rameno_zad;
          END_IF;
       END_IF;
-         elsif displayInited=0 then;
-            displejBarva:="neznámá"; //před čtením barvy, nastav výpis na "neznámá"
-            displayInited:=1;
+   ELSIF displayInited=0 then;
+      displejBarva:="neznámá"; //před čtením barvy, nastav výpis na "neznámá"
+      displayInited:=1;
    END_IF;
    doprav_do:=doprav_cidlo_zad AND doprav_do;
    //2. část
 END_FUNCTION
+
+FUNCTION_BLOCK prazdne_FCB:bool //FCB pro nabrani prazdnych palet a dovezeni je do nakladaci oblasti
+   VAR_INPUT
+      i:int;
+      j:int;
+   END_VAR
+   VAR 
+      verti:udint;
+      horiz:udint:=horiz_ink;
+   END_VAR
+   VAR_OUTPUT
+      probehlo:bool:=0;
+   END_VAR
+      IF verti_ink<PolohaVerti[i] then; //posune prepravnik na vertikalni uroven
+         verti_do:=1;
+      ELSE
+         verti_do:=0;
+         verti:=verti_ink;
+         IF horiz<PolohaHoriz[j] then; //posune prepravnik na horizontalni uroven
+            horiz_vl:=1;
+         ELSIF horiz>PolohaHoriz[j] then;
+            horiz_vp:=1;
+         ELSE
+            horiz_vl:=0;
+            horiz_vp:=0;
+            ram_vy:= not cidlo_rameno_pre; //vysune rameno
+            IF verti>verti_ink-50 then; //nadzvedne rameno uz s paletou
+               verti_na:=1;
+            ELSE
+               verti_na:=0;
+               ram_vs:= not cidlo_rameno_zad; //zasune rameno
+            END_IF;
+            probehlo:=1; //vrati, ze FCB probehl
+         END_IF; 
+      END_IF;
+END_FUNCTION_BLOCK
+VAR_GLOBAL
+   nabirani:=prazdne_FCB;
+END_VAR
+
+FUNCTION_BLOCK plne_FCB:bool //FCB pro odvoz a odkladani plnych palet na puvodni pozici
+   VAR_INPUT
+      i:int;
+      j:int;
+      vrat:bool;
+   END_VAR
+   VAR
+      horiz:udit:=horiz_ink;
+   END_VAR
+   VAR_OUTPUT
+      vraceno:bool:=0;
+   END_VAR
+   IF odvezl AND vrat then;
+      IF verti_ink>PolohaVerti[i] then; //posune prepravnik na vertikalni uroven
+         verti_na:=1;
+      ELSE
+         verti_na:=0;
+         verti:=verti_ink;
+         IF horiz_ink<PolohaHoriz[j] then; //posune prepravnik na horizontalni uroven
+            horiz_vl:=1;
+         ELSIF horiz>PolohaHoriz[j] then;
+            horiz_vp:=1;
+         ELSE
+            horiz_vl:=0;
+            horiz_vp:=0;
+            ram_vy:= not cidlo_rameno_pre; //vysune rameno
+            IF verti<verti_ink+50 then; //vysunute rameno posune dolu, paleta zustane v regalu
+               verti_do:=1;
+            ELSE
+               verti_do:=0;
+               ram_vs:= not cidlo_rameno_zad; //zasune rameno
+            END_IF;
+            vraceno:=1; //vrati, ze FCB probehl
+         END_IF; 
+      END_IF;
+   END_IF; 
+END_FUNCTION_BLOCK
+VAR_GLOBAL
+   vraceni:=plne_FCB;
+END_VAR
+
+FUNCTION ridici:bool //ridici funkce, ktera spousti ve spravny cas dane funkce
+   VAR
+      i:int:=0;
+      j:int:=0;
+      vrat:bool:=0;
+      blokace:bool=0;
+   END_VAR
+   IF nabirani.probehlo AND not blokace then;
+      odvezl:=hybej(); //odveze prazdnou paletu do nakladaci oblasti
+      IF odvezl AND vraceni.vraceno then; //zmeni polohu v regalu
+         IF i<=2 AND j<2 then;
+            j:=j+1;
+         ELSIF i<2 then;
+            i:=i+1;
+         ELSE
+            blokace:=1;
+         END_IF;
+      ELSIF odvezl
+         vraceni(i:=i, j:=j, vrat:=vrat); //vrati naplnenou paletu na jeji polohu
+      END_IF;  
+   ELSE
+      nabirani(i:=i, j:=j); //nabere prazdnou paletu na prislusne pozici v regalu
+   END_IF; 
+END_FUNCTION
+
 
 PROGRAM prgMain
 VAR
@@ -230,8 +277,8 @@ ELSE
       ridSlovo1:=1;
       pomoc:=1;
       //manualni();
-      hybej();
-      dovez_prazdne();
+      //hybej();
+      ridici();
    ELSE
       ridSlovo:=2;        
       ridSlovo1:=2;
