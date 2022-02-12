@@ -30,8 +30,8 @@ casovac:TON;
 PolohaVerti: array[0..4] of udint:=[3852,1892,204,3420];
 PolohaHoriz: array[0..4] of udint:=[9403,6462,3629,12];
 nalozeno:bool:=zk0;
-
 END_VAR
+
 FUNCTION kalibrace:bool  //HOTOVO, funkce na kalibraci jednotky
    IF not cidlo_rameno_zad then;
       ram_vs:=1;
@@ -81,121 +81,13 @@ FUNCTION_BLOCK color_fb
    if not h=-1 and a0<5000 and a1<5000 then;
      color:=h;
      h:=-1;
-   end_if
+   end_if //FCB na poznávání barevného kódování na boku palet
 END_FUNCTION_BLOCK
 var_global
    col:color_fb;
    dd:bool:=0;
    done:bool:=0;
 end_var
-
-FUNCTION hybej:bool //funkce pro rozvoz naplněných palet do regálů
-   VAR
-      nakladej:bool:=0;
-      verti:udint:=verti_ink;
-      horiz:udint:=horiz_ink;
-      pomoc:bool:=0;
-      pomoc1:bool:=0;
-         displayInited:=0;
-   END_VAR
-   IF verti < 3250 then; //dojede na vertikalni polohu nakladaci oblasti
-      verti_do:=1;
-   ELSIF verti > 3250 then;
-      verti_na:=1;
-   ELSE
-      verti_do:=0;
-      verti_na:=0;
-      pomoc1:=1;
-   END_IF;
-   IF horiz < 10 then; //dojede na horizontalni polohu nakladaci oblasti
-      horiz_vl:=1;
-   ELSIF horiz > 10 then;
-      horiz_vp:=1;
-   ELSE
-      horiz_vl:=0;
-      horiz_vp:=0;
-      pomoc:=1;
-   END_IF; 
-   ram_vy:=not cidlo_rameno_pre and pomoc and pomoc1; //pokud je v poloze oblasti, zacne se vysouvat rameno = paleta se posadi na dopravnik v nakl. obasti
-
-   
-   IF not doprav_cidlo_pre AND doprav_cidlo_zad then;
-      doprav_do:=1;
-      //sken barvy - vypis na obrazovku
-         col(a0:=cidloAnalog0,a1:=cidloAnalog1);
-         case col.color of
-            0:
-               displejBarva:="bílá";
-            1:
-               displejBarva:="červená";
-            2:
-               displejBarva:="modrá";
-         end_case;
-         
-      IF nalozeno then; //pokud uzivatel stiskne tlacitko, ze barevny obrok vlozil, tak se paleta vrati zpet na rameno a to se zatahne
-         IF verti_ink<3150 then; //vylozi paletu na dopravnik
-            verti_na:=1;
-         ELSE
-            verti_na:=0;
-         END_IF;
-         doprav_ve:= doprav_cidlo_pre;
-         IF verti_ink<3250 then;
-            verti_na:=1;
-         ELSE
-            verti_na:=0;
-         END_IF;
-         IF doprav_cidlo_pre and not doprav_cidlo_zad then;
-            ram_vs:=not cidlo_rameno_zad;
-         END_IF;
-      END_IF;
-         elsif displayInited=0 then;
-            displejBarva:="neznámá"; //před čtením barvy, nastav výpis na "neznámá"
-            displayInited:=1;
-   END_IF;
-
-   doprav_do:=doprav_cidlo_zad AND doprav_do;
-END_FUNCTION
-
-(*
-FUNCTION_BLOCK rameno:bool
-  var_input
-      zvedni:bool;
-      poloz:bool;
-      verti_ink:udint;
-   end_var
-   var
-      verti:udint:=verti_ink;
-      //pomoc:bool:=0;
-   end_var
-   var_output
-      hotovo:bool;
-   end_var 
-   IF zvedni AND not hotovo then;
-      IF verti<verti_ink+50 then;
-         verti_na:=1;
-      ELSE
-         verti_na:=0;
-      END_IF;
-      ram_vs:= not cidlo_rameno_zad;
-      IF cidlo_rameno_zad then;
-         pomoc:=1;
-         hotovo:=1;
-      END_IF;
-   END_IF;
-   IF poloz AND not hotovo then;
-      IF verti<verti_ink-50 then;
-         verti_do:=1;
-      ELSE
-         verti_do:=0;
-      END_IF;
-      ram_vs:= not cidlo_rameno_zad;
-      IF cidlo_rameno_zad then;
-         pomoc:=1;
-         hotovo:=1;
-      END_IF;
-   END_IF;
-END_FUNCTION_BLOCK
-*)
 
 FUNCTION_BLOCK prazdne_FCB:bool //FCB pro nabrani prazdnych palet a dovezeni je do nakladaci oblasti
    VAR_INPUT
@@ -236,10 +128,10 @@ FUNCTION dovez_prazdne:bool
    VAR
       i:int:=0;
       j:int:=0;
-      probehlo:bool=0;
+      //probehlo:bool=0;
       blokace:bool=0;
    END_VAR
-   IF probehlo AND not blokace then;
+   IF nabirani.probehlo AND not blokace then;
       hybej();
       IF i<=2 AND j<=2 then;
          j:=j+1;
@@ -249,10 +141,77 @@ FUNCTION dovez_prazdne:bool
          blokace:=1;
       END_IF; 
    ELSE
-      nabirani(i:=i, j:=j, probehlo=>probehlo);
+      nabirani(i:=i, j:=j);
    END_IF;
-
 END_FUNCTION
+
+FUNCTION hybej:bool //funkce pro rozvoz naplněných palet do regálů
+   VAR
+      nakladej:bool:=0;
+      verti:udint:=verti_ink;
+      horiz:udint:=horiz_ink;
+      pomoc:bool:=0;
+      pomoc1:bool:=0;
+      displayInited:=0;
+   END_VAR
+   IF verti < 3250 then; //dojede na vertikalni polohu nakladaci oblasti
+      verti_do:=1;
+   ELSIF verti > 3250 then;
+      verti_na:=1;
+   ELSE
+      verti_do:=0;
+      verti_na:=0;
+      pomoc1:=1;
+   END_IF;
+   IF horiz < 10 then; //dojede na horizontalni polohu nakladaci oblasti
+      horiz_vl:=1;
+   ELSIF horiz > 10 then;
+      horiz_vp:=1;
+   ELSE
+      horiz_vl:=0;
+      horiz_vp:=0;
+      pomoc:=1;
+   END_IF; 
+   ram_vy:=not cidlo_rameno_pre and pomoc and pomoc1; //pokud je v poloze oblasti, zacne se vysouvat rameno = paleta se posadi na dopravnik v nakl. obasti
+   //1. část
+   
+   IF not doprav_cidlo_pre AND doprav_cidlo_zad then;
+      doprav_do:=1;
+      //sken barvy - vypis na obrazovku
+         col(a0:=cidloAnalog0,a1:=cidloAnalog1);
+         case col.color of
+            0:
+               displejBarva:="bílá";
+            1:
+               displejBarva:="červená";
+            2:
+               displejBarva:="modrá";
+         end_case;
+         
+      IF nalozeno then; //pokud uzivatel stiskne tlacitko, ze barevny obrok vlozil, tak se paleta vrati zpet na rameno a to se zatahne
+         IF verti_ink<3150 then; //vylozi paletu na dopravnik
+            verti_na:=1;
+         ELSE
+            verti_na:=0;
+         END_IF;
+         doprav_ve:= doprav_cidlo_pre;
+         IF verti_ink<3250 then;
+            verti_na:=1;
+         ELSE
+            verti_na:=0;
+         END_IF;
+         IF doprav_cidlo_pre and not doprav_cidlo_zad then;
+            ram_vs:=not cidlo_rameno_zad;
+         END_IF;
+      END_IF;
+         elsif displayInited=0 then;
+            displejBarva:="neznámá"; //před čtením barvy, nastav výpis na "neznámá"
+            displayInited:=1;
+   END_IF;
+   doprav_do:=doprav_cidlo_zad AND doprav_do;
+   //2. část
+END_FUNCTION
+
 PROGRAM prgMain
 VAR
    cidlo0, cidlo1:INT;
