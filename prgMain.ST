@@ -196,7 +196,7 @@ FUNCTION_BLOCK plne_FCB:bool //FCB pro odvoz a odkladani plnych palet na puvodni
    VAR_INPUT
       i:int;
       j:int;
-      vrat:bool;
+      //vrat:bool;
    END_VAR
    VAR
       horiz:udit:=horiz_ink;
@@ -204,13 +204,13 @@ FUNCTION_BLOCK plne_FCB:bool //FCB pro odvoz a odkladani plnych palet na puvodni
    VAR_OUTPUT
       vraceno:bool:=0;
    END_VAR
-   IF odvezl AND vrat then;
+   //IF odvezl AND vrat then;
       IF verti_ink>PolohaVerti[i] then; //posune prepravnik na vertikalni uroven
          verti_na:=1;
       ELSE
          verti_na:=0;
          verti:=verti_ink;
-         IF horiz_ink<PolohaHoriz[j] then; //posune prepravnik na horizontalni uroven
+         IF horiz<PolohaHoriz[j] then; //posune prepravnik na horizontalni uroven
             horiz_vl:=1;
          ELSIF horiz>PolohaHoriz[j] then;
             horiz_vp:=1;
@@ -227,7 +227,7 @@ FUNCTION_BLOCK plne_FCB:bool //FCB pro odvoz a odkladani plnych palet na puvodni
             vraceno:=1; //vrati, ze FCB probehl
          END_IF; 
       END_IF;
-   END_IF; 
+   //END_IF; 
 END_FUNCTION_BLOCK
 VAR_GLOBAL
    vraceni:=plne_FCB;
@@ -251,7 +251,7 @@ FUNCTION ridici:bool //ridici funkce, ktera spousti ve spravny cas dane funkce
             blokace:=1;
          END_IF;
       ELSIF odvezl
-         vraceni(i:=i, j:=j, vrat:=vrat); //vrati naplnenou paletu na jeji polohu
+         vraceni(i:=i, j:=j); //vrati naplnenou paletu na jeji polohu
       END_IF;  
    ELSE
       nabirani(i:=i, j:=j); //nabere prazdnou paletu na prislusne pozici v regalu
@@ -262,11 +262,9 @@ END_FUNCTION
 PROGRAM prgMain
 VAR
    cidlo0, cidlo1:INT;
-   pomoc:bool;
 END_VAR
 horiz_ink:=inkrementalni_horiz;
 verti_ink:=inkrementalni_verti;
-pomoc:=0;
 cidlo0:=cidloAnalog0;
 cidlo1:=cidloAnalog1;
 IF not kalibruj then; //uvodni kalibrace, zajisti, ze po spusteni se system vzdy nejdrive zkalibruje
@@ -275,9 +273,7 @@ ELSE
    IF casovac.Q then; //seridi nejdrive inkrementalni snimace, po te program dale pokracuje
       ridSlovo:=1;
       ridSlovo1:=1;
-      pomoc:=1;
       //manualni();
-      //hybej();
       ridici();
    ELSE
       ridSlovo:=2;        
