@@ -25,7 +25,7 @@ cas at %S13.2:bool;
 jednou3:bool:=0;
 kalibruj:bool:=0;
 odvezl:bool:=0;
-barva:byte;
+barva:usint:=4;
 displejBarva:string;
 casovac,casovac1:TON;
 //PolohaVerti: array[0..4] of udint:=[3852,1892,204,3420];
@@ -66,24 +66,24 @@ FUNCTION_BLOCK color_fb //FCB na poznávání barevného kódování na boku pal
       a1:int;
    END_VAR
    VAR
-      h:int:=-1; // buffer pro color
+      h:usint:=6; // buffer pro color
    END_VAR
    VAR_OUTPUT
-      color:int:=-1;
+      color:int:=6;
    END_VAR
-   IF (h=3 or h=-1) and (a0>=5000 or a1>=5000) then; // něco vjelo
+   IF (h=3 or h=6) and (a0>=5000 or a1>=5000) then; // něco vjelo
       IF a0<5000 then; //bílý pruh dole
-         h:=1;
+         h:=0;
       ELSIF a1<5000 then; //bílý pruh nahoře
-         h:=2;
+         h:=1;
       ELSE //žádný bílý pruh
-         h:=3;
+         h:=2;
       END_IF;
    END_IF;
-   IF not h=-1 AND a0<5000 AND a1<5000 then;
-      color:=h;
-      //)barva:=h;
-      h:=-1;
+   IF not h=6 AND a0<5000 AND a1<5000 then;
+      //color:=h;
+      barva:=h;
+      h:=6;
    END_IF;
 END_FUNCTION_BLOCK
 VAR_GLOBAL
@@ -94,7 +94,6 @@ END_VAR
 
 FUNCTION hybej:bool //funkce pro rozvoz palet
    VAR
-      //nakladej:bool:=0;
       verti:udint;
       horiz:udint;
       pomoc:bool:=0;
@@ -103,14 +102,17 @@ FUNCTION hybej:bool //funkce pro rozvoz palet
       pomoc2:bool:=0;
       pomoc3:bool:=0;
       pomoc4:bool:=0;
+      jednou:bool:=0;
    END_VAR
    IF not pomoc4 then;
       verti:=verti_ink;
-      horiz:=horiz_ink;
       pomoc4:=1;
    END_IF;
+   IF nalozeno then;
+      pomoc2:=1;
+   END_IF;
    IF not pomoc2 then;
-      IF verti < 3375 then; //dojede na vertikalni polohu nakladaci oblasti
+      IF verti < 3350 then; //dojede na vertikalni polohu nakladaci oblasti
          verti_do:=1;
          horiz:=horiz_ink;
       //ELSIF verti > 3250 then;
@@ -120,19 +122,15 @@ FUNCTION hybej:bool //funkce pro rozvoz palet
          //verti_na:=0;
          pomoc1:=1;
       END_IF;
-
-      IF horiz > 100 then; //dojede na horizontalni polohu nakladaci oblasti
+      IF not cidlo_horiz then; //dojede na horizontalni polohu nakladaci oblasti
          horiz_vp:=1;
       ELSE
-         //horiz_vl:=0;
          horiz_vp:=0;
          pomoc:=1;
       END_IF;
       ram_vy:=not cidlo_rameno_pre and pomoc and pomoc1; //pokud je v poloze oblasti, zacne se vysouvat rameno = paleta se posadi na dopravnik v nakl. obasti
       //1. část
-      
-      //IF not doprav_cidlo_pre AND doprav_cidlo_zad then;
-      doprav_do:=doprav_cidlo_zad AND cidlo_rameno_pre;
+      doprav_do:=doprav_cidlo_zad AND cidlo_rameno_pre AND not nalozeno;
       col(a0:=cidloAnalog0,a1:=cidloAnalog1); //sken barvy
       CASE col.color OF //vypise pozadovanou barvu na displej PLC - nutne dodelat
          3:
@@ -142,18 +140,14 @@ FUNCTION hybej:bool //funkce pro rozvoz palet
          2:
             displejBarva:='modra';
       END_CASE;
-   //ELSE
-      //doprav_do:=0;
-   //END_IF;
-      IF nalozeno then;
-         pomoc2:=1;
-      END_IF;
    END_IF;
    //3. část
-
+   IF pomoc2 AND not jednou then;
+      jednou:=1;
+      verti:=verti_ink;
+   END_IF;
    IF pomoc2 then; //pokud uzivatel stiskne tlacitko, ze barevny obrok vlozil, tak se paleta vrati zpet na rameno a to se zatahne
-   verti:=verti_ink;
-      IF verti<3450 then; //vylozi paletu na dopravnik
+      IF verti<3420 then; //vylozi paletu na dopravnik
          verti_do:=1;
       ELSE
         verti_do:=0;
@@ -171,11 +165,13 @@ FUNCTION hybej:bool //funkce pro rozvoz palet
             verti_na:=0;
             ram_vs:=not cidlo_rameno_zad;
             IF cidlo_rameno_zad then;
-               pomoc2:=0;
+               //pomoc2:=0;
+               odvezl:=1;
             END_IF;
          END_IF;
       END_IF;
    END_IF;
+
 
    //2. část
 END_FUNCTION
@@ -230,7 +226,6 @@ FUNCTION_BLOCK prazdne_FCB //FCB pro nabrani prazdnych palet a dovezeni je do na
             jednou3:=1;
          ELSE
             verti_na:=0;
-
          END_IF;
          IF jednou3 then;
             IF not cidlo_rameno_zad then;
