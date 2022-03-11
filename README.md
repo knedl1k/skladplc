@@ -13,6 +13,6 @@ Rozpoznávání potřebných barev,
 vypisování na obrazovku
 
 Dodělat:
-úprava podmínky pro posun dopravniku
-opravit mrcasení ze strany na stranu
+úprava podmínky pro posun dopravniku,
+opravit mrcasení ze strany na stranu,
 vylepšit inkrementalni pozice
