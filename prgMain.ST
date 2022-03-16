@@ -7,10 +7,10 @@ cidlo_rameno_zad at %X10.7:bool; //mechanicke cidlo v zadni casti ramena preprav
 cidlo_rameno_pre at %X10.6:bool; //mechanicke cidlo v predni casti ramena prepravniku
 doprav_cidlo_zad at %X100.6:bool;  //svetelna brana dopravniku vzadu
 doprav_cidlo_pre at %X100.5:bool; // svetelna brana dopravniku vpredu
-zk0 at %X101.0:bool; //manualni input
-zk1 at %X101.1:bool;
-zk2 at %X101.2:bool;
-zk3 at %X101.3:bool;
+//zk0 at %X101.0:bool; //manualni input
+//zk1 at %X101.1:bool;
+//zk2 at %X101.2:bool;
+//zk3 at %X101.3:bool;
 doprav_do at %Y32.4:bool; //pohon dopravniku - dovnitr
 doprav_ve at %Y32.5:bool; //pohon dopravniku - ven
 horiz_vl at %Y32.6:bool; //horizontalni, vlevo:ccw
@@ -33,6 +33,14 @@ casovac,casovac1:TON;
 PolohaVerti: array[0..3] of udint:=[284,1892,3852];
 PolohaHoriz: array[0..3] of udint:=[3629,6462,9403];
 nalozeno at %X101.0:bool;
+
+inkrementalni_horiz at %XL106:udint;
+inkrementalni_verti at %XL116:udint;
+ridSlovo at %YW20:uint;
+ridSlovo1 at %YW26:uint;
+
+help:bool;
+
 END_VAR
 
 FUNCTION kalibrace:bool  //HOTOVO, funkce na kalibraci jednotky
@@ -52,6 +60,7 @@ FUNCTION kalibrace:bool  //HOTOVO, funkce na kalibraci jednotky
       kalibrace:=1;
    END_IF;
 END_FUNCTION
+(*
 FUNCTION manualni:bool     //HOTOVO, funkce na manualni ovladani
    horiz_vp:=zk0 and not zk3;
    verti_na:=zk1 and not zk3;
@@ -60,6 +69,7 @@ FUNCTION manualni:bool     //HOTOVO, funkce na manualni ovladani
    verti_do:=zk1 and  zk3;
    ram_vy:=zk2 and  zk3;
 END_FUNCTION
+*)
 FUNCTION_BLOCK color_fb //FCB na poznávání barevného kódování na boku palet
    VAR_INPUT
       a0:int;
@@ -102,6 +112,7 @@ FUNCTION hybej:bool //funkce pro rozvoz palet
       pomoc2:bool:=0;
       pomoc3:bool:=0;
       pomoc4:bool:=0;
+      pomocN:bool:=0;
       jednou:bool:=0;
    END_VAR
    IF not pomoc4 then;
@@ -130,7 +141,7 @@ FUNCTION hybej:bool //funkce pro rozvoz palet
       END_IF;
       ram_vy:=not cidlo_rameno_pre and pomoc and pomoc1; //pokud je v poloze oblasti, zacne se vysouvat rameno = paleta se posadi na dopravnik v nakl. obasti
       //1. část
-      doprav_do:=doprav_cidlo_zad AND cidlo_rameno_pre AND not nalozeno;
+      doprav_do:=doprav_cidlo_zad AND NOT doprav_ve;
       col(a0:=cidloAnalog0,a1:=cidloAnalog1); //sken barvy
       CASE col.color OF //vypise pozadovanou barvu na displej PLC - nutne dodelat
          3:
@@ -142,6 +153,8 @@ FUNCTION hybej:bool //funkce pro rozvoz palet
       END_CASE;
    END_IF;
    //3. část
+   
+   
    IF pomoc2 AND not jednou then;
       jednou:=1;
       verti:=verti_ink;
@@ -152,12 +165,7 @@ FUNCTION hybej:bool //funkce pro rozvoz palet
       ELSE
         verti_do:=0;
       END_IF;
-      IF doprav_cidlo_pre then;
-         doprav_ve:=1;
-      ELSE
-         doprav_ve:=0;
-         pomoc3:=1;
-      END_IF;
+
       IF pomoc3 then;
          IF verti<3150 then;
             verti_na:=1;
@@ -165,11 +173,25 @@ FUNCTION hybej:bool //funkce pro rozvoz palet
             verti_na:=0;
             ram_vs:=not cidlo_rameno_zad;
             IF cidlo_rameno_zad then;
-               //pomoc2:=0;
                odvezl:=1;
             END_IF;
          END_IF;
       END_IF;
+   END_IF;
+   (*IF not doprav_cidlo_zad AND pomoc2 then;
+      doprav_ve:=1;
+      pomocN:=1;
+   END_IF;
+   IF not doprav_cidlo_pre AND pomocN then;
+      doprav_ve:=0;
+      odvezl:=0;
+   END_IF;
+   *)
+   IF doprav_cidlo_pre AND pomoc2 then;
+      doprav_ve:=1;
+   ELSIF pomoc2 AND not doprav_cidlo_pre AND doprav_cidlo_zad then
+      doprav_ve:=0;
+      odvezl:=1;
    END_IF;
 
 
@@ -187,8 +209,8 @@ FUNCTION_BLOCK prazdne_FCB //FCB pro nabrani prazdnych palet a dovezeni je do na
       jednou:bool:=0;
       jednou1:bool:=0;
       jednou2:bool:=0;
-     // jednou3:bool:=0;
-     jednou4:bool:=0;
+      jednou3:bool:=0;
+      jednou4:bool:=0;
    END_VAR
    VAR_OUTPUT
       probehlo:bool:=0;
@@ -209,6 +231,7 @@ FUNCTION_BLOCK prazdne_FCB //FCB pro nabrani prazdnych palet a dovezeni je do na
       ELSE
          horiz_vl:=0;
          horiz_vp:=0;
+
          jednou1:=1;
       END_IF;
    END_IF;
@@ -222,7 +245,7 @@ FUNCTION_BLOCK prazdne_FCB //FCB pro nabrani prazdnych palet a dovezeni je do na
           jednou2:=1;
         END_IF;
         IF verti_ink>(verti-100) then; //nadzvedne rameno uz s paletou
-            verti_na:=1;
+            verti_na:=0;
             jednou3:=1;
          ELSE
             verti_na:=0;
@@ -293,10 +316,14 @@ FUNCTION ridici:bool //ridici funkce, ktera spousti ve spravny cas dane funkce
    END_VAR
    //blokace:=0;
    IF nabirani.probehlo AND not blokace then;
-      odvezl:=hybej(); //odveze prazdnou paletu do nakladaci oblasti
+      hybej(); //odveze prazdnou paletu do nakladaci oblasti
+      if odvezl then;
+         help:=1;
+      end_if;
       IF odvezl AND vraceni.vraceno then; //zmeni polohu v regalu
          IF i<=2 AND j<2 then;
             j:=j+1;
+            odvezl:=0;
          ELSIF i<2 then;
             i:=i+1;
          ELSE
@@ -318,13 +345,13 @@ horiz_ink:=inkrementalni_horiz;
 verti_ink:=inkrementalni_verti;
 cidlo0:=cidloAnalog0;
 cidlo1:=cidloAnalog1;
-IF not kalibruj then; //uvodni kalibrace, zajisti, ze po spusteni se system vzdy nejdrive zkalibruje
+IF not kalibruj then //uvodni kalibrace, zajisti, ze po spusteni se system vzdy nejdrive zkalibruje
    kalibruj:=kalibrace();
 ELSE
-   IF casovac.Q then; //seridi nejdrive inkrementalni snimace, po te program dale pokracuje
+   IF casovac.Q then //seridi nejdrive inkrementalni snimace, po te program dale pokracuje
       ridSlovo:=1;
       ridSlovo1:=1;
-      manualni();
+      //manualni();
       ridici();
    ELSE
       ridSlovo:=2;
