@@ -13,6 +13,5 @@ Rozpoznávání potřebných barev,
 vypisování na obrazovku
 
 Dodělat:
-úprava podmínky pro posun dopravniku,
-opravit mrcasení ze strany na stranu,
-vylepšit inkrementalni pozice
+vylepšit inkrementalni pozice,
+vracení se s plnou paletou do regalu
