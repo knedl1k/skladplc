@@ -131,7 +131,7 @@ FUNCTION_BLOCK hybej_FCB //funkce pro rozvoz palet
          //verti_na:=0;
          pomoc1:=1;
       END_IF;
-      IF not cidlo_horiz then; //dojede na horizontalni polohu nakladaci oblasti
+      IF horiz_ink>75 then; //dojede na horizontalni polohu nakladaci oblasti
          horiz_vp:=1;
       ELSE
          horiz_vp:=0;
@@ -272,21 +272,22 @@ FUNCTION_BLOCK plne_FCB //FCB pro odvoz a odkladani plnych palet na puvodni pozi
             horiz_vl:=1;
          //ELSIF horiz_ink>PolohaHoriz[j] then;
          //   horiz_vp:=1;
-         ELSE
+         ELSIF jednou then;
             horiz_vl:=0;
             horiz_vp:=0;
             IF not pomoc then;
                ram_vy:= not cidlo_rameno_pre; //vysune rameno
                pomoc:=1;
             END_IF;
-            IF verti_ink<verti+50 AND pomoc then; //vysunute rameno posune dolu, paleta zustane v regalu
+            IF pomoc then;
+               ram_vy:=0;
+            END_IF;
+            IF verti_ink<(verti+150) AND pomoc then; //vysunute rameno posune dolu, paleta zustane v regalu
                verti_do:=1;
             ELSIF pomoc then;
                verti_do:=0;
                ram_vs:= not cidlo_rameno_zad; //zasune rameno
-               IF ram_vs then; //vrati, ze FCB probehl
-                  vraceno:=1;
-               END_IF;
+               vraceno:=cidlo_rameno_zad; //vrati, ze FCB probehl
             END_IF;
          END_IF;
       END_IF;
