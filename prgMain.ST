@@ -255,6 +255,7 @@ FUNCTION_BLOCK plne_FCB //FCB pro odvoz a odkladani plnych palet na puvodni pozi
       verti:udint;
       jednou:bool:=0;
       pomoc:bool:=0;
+      pomoc2:bool:=0;
    END_VAR
    VAR_OUTPUT
       vraceno:bool:=0;
@@ -275,19 +276,22 @@ FUNCTION_BLOCK plne_FCB //FCB pro odvoz a odkladani plnych palet na puvodni pozi
          ELSIF jednou then;
             horiz_vl:=0;
             horiz_vp:=0;
-            IF not pomoc then;
-               ram_vy:= not cidlo_rameno_pre; //vysune rameno
+            IF not cidlo_rameno_pre then;
+               ram_vy:=1; //vysune rameno
+            ELSE
+               ram_vy:=0;
                pomoc:=1;
             END_IF;
-            IF pomoc then;
-               ram_vy:=0;
-            END_IF;
-            IF verti_ink<(verti+150) AND pomoc then; //vysunute rameno posune dolu, paleta zustane v regalu
+            IF verti_ink<(verti+200) AND pomoc then; //vysunute rameno posune dolu, paleta zustane v regalu
                verti_do:=1;
             ELSIF pomoc then;
                verti_do:=0;
-               ram_vs:= not cidlo_rameno_zad; //zasune rameno
-               vraceno:=cidlo_rameno_zad; //vrati, ze FCB probehl
+               IF not cidlo_rameno_zad then;
+                  ram_vs:=1;
+               ELSE
+                  ram_vs:=0;   //zasune rameno
+                  vraceno:=1;  //vrati, ze FCB probehl
+               END_IF;
             END_IF;
          END_IF;
       END_IF;
