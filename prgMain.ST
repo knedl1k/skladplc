@@ -27,18 +27,22 @@ kalibruj:bool:=0;
 barva:usint:=4;
 displejBarva:string;
 casovac,casovac1:TON;
-PolohaVerti: array[0..3] of udint:=[290,1892,3852];
-PolohaHoriz: array[0..3] of udint:=[3629,6462,9403];
+PolohaVerti: array[0..3] of udint:=[290,2020,4000];
+PolohaHoriz: array[0..3] of udint:=[3629,6462,9300];
 nalozeno at %X101.0:bool;
 inkrementalni_horiz at %XL106:udint;
 inkrementalni_verti at %XL116:udint;
 ridSlovo at %YW20:uint;
 ridSlovo1 at %YW26:uint;
 
-   i:int:=0;
-   j:int:=0;
-help:bool;
+   i:int:=2;
+   j:int:=2;
+
 hlavni_barva:byte:=0;
+
+probehlo_hybej:bool:=0;
+probehlo_nabirani:bool:=0;
+probehlo_vraceni:bool:=0;
 END_VAR
 
 FUNCTION kalibrace:bool  //HOTOVO, funkce na kalibraci jednotky
@@ -114,6 +118,7 @@ FUNCTION_BLOCK hybej_FCB //funkce pro rozvoz palet
       pomoc4:bool:=0;
       jednou:bool:=0;
       nahore:bool:=0;
+      //dole:bool:=0;
    END_VAR
    VAR_OUTPUT
       odvezl:bool:=0;
@@ -127,8 +132,9 @@ FUNCTION_BLOCK hybej_FCB //funkce pro rozvoz palet
          verti_do:=1;
          nahore:=1;
          //horiz:=horiz_ink;
-      ELSIF verti_ink > 3250 AND not nahore then
+      ELSIF verti_ink > 3350 AND not nahore then
          verti_na:=1;
+         //dole:=1;
       ELSE
          verti_do:=0;
          verti_na:=0;
@@ -183,6 +189,7 @@ FUNCTION_BLOCK hybej_FCB //funkce pro rozvoz palet
          verti_na:=0;
          ram_vs:=not cidlo_rameno_zad;
          odvezl:=cidlo_rameno_zad;
+         probehlo_hybej:=not ram_vs;
       END_IF;
    END_IF;
    //2. část
@@ -203,15 +210,22 @@ FUNCTION_BLOCK prazdne_FCB //FCB pro nabrani prazdnych palet a dovezeni je do na
       jednou2:bool:=0;
       jednou3:bool:=0;
       vlevo:bool:=0;
+      nahoru:bool:=0;
+      dolu:bool:=0;
    END_VAR
    VAR_OUTPUT
       probehlo:bool:=0;
    END_VAR
    horiz:=horiz_ink;
-   IF verti_ink<PolohaVerti[i] then //posune prepravnik na vertikalni uroven
+   IF verti_ink<PolohaVerti[i] AND not dolu then //posune prepravnik na vertikalni uroven
       verti_do:=1;
+      nahoru:=1;
+   ELSIF verti_ink>PolohaVerti[i] AND not nahoru then
+      verti_na:=1;
+      dolu:=1;
    ELSE
       verti_do:=0;
+      verti_na:=0;
       IF not jednou then
          verti:=verti_ink;
          jednou:=1;
@@ -232,8 +246,8 @@ FUNCTION_BLOCK prazdne_FCB //FCB pro nabrani prazdnych palet a dovezeni je do na
    ELSIF jednou1 then
       ram_vy:=0;
       jednou2:=1;
-      IF verti_ink>(verti-150) then //nadzvedne rameno uz s paletou
-         verti_na:=0;
+      IF verti_ink>(verti-50) then //nadzvedne rameno uz s paletou
+         verti_na:=1;
          jednou3:=1;
       ELSE
          verti_na:=0;
@@ -244,6 +258,7 @@ FUNCTION_BLOCK prazdne_FCB //FCB pro nabrani prazdnych palet a dovezeni je do na
          ELSE
             ram_vs:=0;
             probehlo:=1;
+            probehlo_nabirani:=1;
          END_IF;
       END_IF;
    END_IF;
@@ -263,7 +278,8 @@ FUNCTION_BLOCK plne_FCB //FCB pro odvoz a odkladani plnych palet na puvodni pozi
       verti:udint;
       jednou:bool:=0;
       pomoc:bool:=0;
-      vlevo:bool:=0;
+      //vlevo:bool:=0;
+      nahoru:bool:=0;
       //pomoc2:bool:=0;
    END_VAR
    VAR_OUTPUT
@@ -272,20 +288,24 @@ FUNCTION_BLOCK plne_FCB //FCB pro odvoz a odkladani plnych palet na puvodni pozi
    //IF odvezl AND vrat then
       IF verti_ink>PolohaVerti[i] AND not pomoc then //posune prepravnik na vertikalni uroven
          verti_na:=1;
+         nahoru:=1;
+      ELSIF verti_ink<PolohaVerti[i] AND not pomoc AND not nahoru then
+         verti_do:=1;
       ELSE
          verti_na:=0;
+         verti_do:=0;
          IF not jednou then
             verti:=verti_ink;
             jednou:=1;
          END_IF;
          IF horiz_ink<PolohaHoriz[j] then //posune prepravnik na horizontalni uroven
             horiz_vl:=1;
-            vlevo:=1;
-         ELSIF horiz_ink>PolohaHoriz[j] AND not vlevo then
-            horiz_vp:=1;
+            //vlevo:=1;
+         //ELSIF horiz_ink>PolohaHoriz[j] AND not vlevo then
+            //horiz_vp:=1;
          ELSIF jednou then
             horiz_vl:=0;
-            horiz_vp:=0;
+            //horiz_vp:=0;
             IF not cidlo_rameno_pre AND not pomoc then
                ram_vy:=1; //vysune rameno
             ELSE
@@ -303,6 +323,7 @@ FUNCTION_BLOCK plne_FCB //FCB pro odvoz a odkladani plnych palet na puvodni pozi
                ELSE
                   ram_vs:=0;   //zasune rameno
                   vraceno:=1;  //vrati, ze FCB probehl
+                  probehlo_vraceni:=1;
                END_IF;
             END_IF;
          END_IF;
@@ -318,38 +339,39 @@ FUNCTION ridici:bool //ridici funkce, ktera spousti ve spravny cas dane funkce
       //i:int:=0;
       //j:int:=0;
       blokace:bool:=0;
-      //pomoc:bool:=0;
-      //pomoc1:bool:=1;
+      jednou:bool:=0;
+      jednou1:bool:=0;
    END_VAR
-   IF nabirani.probehlo AND not blokace then
-      IF hybej.odvezl then
-         help:=1;
-      ELSE
+   IF probehlo_nabirani AND not blokace then
+      IF not probehlo_hybej then
          hybej();
       END_IF;
-      IF hybej.odvezl AND vraceni.vraceno then //zmeni polohu v regalu
-         IF i<=2 AND j<2 then
+      IF probehlo_hybej AND probehlo_vraceni then //zmeni polohu v regalu
+         IF i<=2 AND j<2 AND not jednou then
             j:=j+1;
-            help:=0;
-            //vraceni.vraceno:=0;
-            //hybej.odvezl:=0;
-         ELSIF i<2 then
+            probehlo_hybej:=0;
+            probehlo_nabirani:=0;
+            probehlo_vraceni:=0;
+            jednou:=1;
+         ELSIF i<2 AND not jednou1 then
             i:=i+1;
+            jednou1:=1;
          ELSE
             blokace:=1;
          END_IF;
-      ELSIF hybej.odvezl then
+      ELSIF probehlo_hybej then
          vraceni(i:=i, j:=j); //vrati naplnenou paletu na jeji polohu
       END_IF;
    ELSE
       nabirani(i:=i, j:=j); //nabere prazdnou paletu na prislusne pozici v regalu
+      jednou:=0;
+      jednou1:=1;
    END_IF;
 END_FUNCTION
 
 PROGRAM prgMain
 VAR
    cidlo0, cidlo1:INT;
-
 END_VAR
 horiz_ink:=inkrementalni_horiz;
 verti_ink:=inkrementalni_verti;
