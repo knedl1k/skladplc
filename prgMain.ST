@@ -30,14 +30,15 @@ casovac,casovac1:TON;
 PolohaVerti: array[0..3] of udint:=[290,1892,3852];
 PolohaHoriz: array[0..3] of udint:=[3629,6462,9403];
 nalozeno at %X101.0:bool;
-
 inkrementalni_horiz at %XL106:udint;
 inkrementalni_verti at %XL116:udint;
 ridSlovo at %YW20:uint;
 ridSlovo1 at %YW26:uint;
 
+   i:int:=0;
+   j:int:=0;
 help:bool;
-
+hlavni_barva:byte:=0;
 END_VAR
 
 FUNCTION kalibrace:bool  //HOTOVO, funkce na kalibraci jednotky
@@ -105,13 +106,14 @@ FUNCTION_BLOCK hybej_FCB //funkce pro rozvoz palet
    END_VAR
    VAR
       verti:udint;
-      horiz:udint;
+      //horiz:udint;
       pomoc:bool:=0;
       pomoc1:bool:=0;
       pomoc3:bool:=0;
       pomoc2:bool:=0;
       pomoc4:bool:=0;
       jednou:bool:=0;
+      nahore:bool:=0;
    END_VAR
    VAR_OUTPUT
       odvezl:bool:=0;
@@ -123,12 +125,13 @@ FUNCTION_BLOCK hybej_FCB //funkce pro rozvoz palet
    IF not pomoc2 then
       IF verti_ink < 3350 then //dojede na vertikalni polohu nakladaci oblasti
          verti_do:=1;
+         nahore:=1;
          //horiz:=horiz_ink;
-      //ELSIF verti > 3250 then
-      // verti_na:=1;
+      ELSIF verti_ink > 3250 AND not nahore then
+         verti_na:=1;
       ELSE
          verti_do:=0;
-         //verti_na:=0;
+         verti_na:=0;
          pomoc1:=1;
       END_IF;
       IF horiz_ink>75 then //dojede na horizontalni polohu nakladaci oblasti
@@ -142,11 +145,14 @@ FUNCTION_BLOCK hybej_FCB //funkce pro rozvoz palet
       col(a0:=cidloAnalog0,a1:=cidloAnalog1); //sken barvy
       CASE col.color OF //vypise pozadovanou barvu na displej PLC - nutne dodelat
          3:
-            displejBarva:='bila';
+            //displejBarva:='bila';
+            hlavni_barva:=3;
          1:
-            displejBarva:='cervena';
+            //displejBarva:='cervena';
+            hlavni_barva:=1;
          2:
-            displejBarva:='modra';
+            //displejBarva:='modra';
+            hlavni_barva:=2;
       END_CASE;
    END_IF;
    //1. část
@@ -196,6 +202,7 @@ FUNCTION_BLOCK prazdne_FCB //FCB pro nabrani prazdnych palet a dovezeni je do na
       jednou1:bool:=0;
       jednou2:bool:=0;
       jednou3:bool:=0;
+      vlevo:bool:=0;
    END_VAR
    VAR_OUTPUT
       probehlo:bool:=0;
@@ -211,8 +218,9 @@ FUNCTION_BLOCK prazdne_FCB //FCB pro nabrani prazdnych palet a dovezeni je do na
       END_IF;
       IF horiz<PolohaHoriz[j] AND not jednou1 then //posune prepravnik na horizontalni uroven
          horiz_vl:=1;
-      //ELSIF horiz>PolohaHoriz[j] AND not jednou1 then
-      //   horiz_vp:=1;
+         vlevo:=1;
+      ELSIF horiz>PolohaHoriz[j] AND not jednou1 AND not vlevo then
+         horiz_vp:=1;
       ELSE
          horiz_vl:=0;
          horiz_vp:=0;
@@ -251,11 +259,12 @@ FUNCTION_BLOCK plne_FCB //FCB pro odvoz a odkladani plnych palet na puvodni pozi
       //vrat:bool;
    END_VAR
    VAR
-      horiz:udint;
+      //horiz:udint;
       verti:udint;
       jednou:bool:=0;
       pomoc:bool:=0;
-      pomoc2:bool:=0;
+      vlevo:bool:=0;
+      //pomoc2:bool:=0;
    END_VAR
    VAR_OUTPUT
       vraceno:bool:=0;
@@ -271,8 +280,9 @@ FUNCTION_BLOCK plne_FCB //FCB pro odvoz a odkladani plnych palet na puvodni pozi
          END_IF;
          IF horiz_ink<PolohaHoriz[j] then //posune prepravnik na horizontalni uroven
             horiz_vl:=1;
-         //ELSIF horiz_ink>PolohaHoriz[j] then
-         //   horiz_vp:=1;
+            vlevo:=1;
+         ELSIF horiz_ink>PolohaHoriz[j] AND not vlevo then
+            horiz_vp:=1;
          ELSIF jednou then
             horiz_vl:=0;
             horiz_vp:=0;
@@ -305,11 +315,11 @@ END_VAR
 
 FUNCTION ridici:bool //ridici funkce, ktera spousti ve spravny cas dane funkce
    VAR
-      i:int:=0;
-      j:int:=0;
+      //i:int:=0;
+      //j:int:=0;
       blokace:bool:=0;
-      pomoc:bool:=0;
-      pomoc1:bool:=1;
+      //pomoc:bool:=0;
+      //pomoc1:bool:=1;
    END_VAR
    IF nabirani.probehlo AND not blokace then
       IF hybej.odvezl then
@@ -339,6 +349,7 @@ END_FUNCTION
 PROGRAM prgMain
 VAR
    cidlo0, cidlo1:INT;
+
 END_VAR
 horiz_ink:=inkrementalni_horiz;
 verti_ink:=inkrementalni_verti;
