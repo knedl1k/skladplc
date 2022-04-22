@@ -262,6 +262,7 @@ FUNCTION_BLOCK plne_FCB //FCB pro odvoz a odkladani plnych palet na puvodni pozi
       verti:udint;
       jednou:bool:=0;
       pomoc:bool:=0;
+      pomoc2:bool:=0;
       nahoru:bool:=0;
    END_VAR
    VAR_OUTPUT
@@ -281,7 +282,7 @@ FUNCTION_BLOCK plne_FCB //FCB pro odvoz a odkladani plnych palet na puvodni pozi
       END_IF;
       IF horiz_ink<PolohaHoriz[j] then //posune prepravnik na horizontalni uroven
          horiz_vl:=1;
-      ELSIF jednou then
+      ELSIF jednou AND pomoc2 then
          horiz_vl:=0;
          IF not cidlo_rameno_pre AND not pomoc then
             ram_vy:=1; //vysune rameno
@@ -301,6 +302,8 @@ FUNCTION_BLOCK plne_FCB //FCB pro odvoz a odkladani plnych palet na puvodni pozi
                probehlo_vraceni:=1;
             END_IF;
          END_IF;
+      ELSE 
+         pomoc2:=1;
       END_IF;
    END_IF;
 END_FUNCTION_BLOCK
