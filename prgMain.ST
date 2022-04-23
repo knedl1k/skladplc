@@ -21,11 +21,9 @@ ram_vy at %Y33.2:bool; //rameno, vysun
 ram_vs at %Y33.3:bool; //rameno, vsun
 horiz_ink:udint;
 verti_ink:udint;
-cas at %S13.2:bool;
-jednou3:bool:=0;
+//cas at %S13.2:bool;
 kalibruj:bool:=0;
-barva:usint:=4;
-casovac,casovac1:TON;
+casovac:TON;
 PolohaVerti: array[0..3] of udint:=[290,2020,4000];
 PolohaHoriz: array[0..3] of udint:=[3629,6462,9300];
 nalozeno at %X101.0:bool;
@@ -33,8 +31,6 @@ inkrementalni_horiz at %XL106:udint;
 inkrementalni_verti at %XL116:udint;
 ridSlovo at %YW20:uint;
 ridSlovo1 at %YW26:uint;
-   //i:int:=2;
-   //j:int:=2;
 hlavni_barva:byte:=0;
 probehlo_hybej:bool:=0;
 probehlo_nabirani:bool:=0;
@@ -70,7 +66,7 @@ FUNCTION manualni:bool //funkce na manualni ovladani skladu
    ram_vy:=zk2 and  zk3;
 END_FUNCTION
 *)
-FUNCTION_BLOCK color_FCB //FCB na poznávání barevného kódování na boku palet
+FUNCTION_BLOCK color_FCB //FCB na poznavani barevneho kodovani na boku palet
    VAR_INPUT
       a0:int;
       a1:int;
@@ -82,22 +78,22 @@ FUNCTION_BLOCK color_FCB //FCB na poznávání barevného kódování na boku pa
       color:int:=6;
    END_VAR
    IF (h=3 or h=6) and (a0>=5000 or a1>=5000) then //neco vjelo
-      IF a0<5000 then //bily pruh dole
+      IF a0<5000 then //bily pruh dole, CERVENA
          h:=0;
-      ELSIF a1<5000 then //bily pruh nahoře
+      ELSIF a1<5000 then //bily pruh nahoře, MODRA
          h:=1;
-      ELSE //žádný bílý pruh
+      ELSE //žádný bílý pruh, BILA
          h:=2;
       END_IF;
    END_IF;
-   IF not h=6 AND a0<5000 AND a1<5000 then
+   IF not h=6 AND a0<5000 AND a1<5000 then //ochrana proti falesnym skenum
       color:=h;
       h:=6;
    END_IF;
 END_FUNCTION_BLOCK
-VAR_GLOBAL
-   col:color_FCB;
-END_VAR
+//VAR_GLOBAL
+//   col:color_FCB;
+//END_VAR
 FUNCTION_BLOCK hybej_FCB //funkce pro rozvoz palet
    VAR_INPUT
    END_VAR
@@ -181,9 +177,9 @@ FUNCTION_BLOCK hybej_FCB //funkce pro rozvoz palet
       END_IF;
    END_IF;
 END_FUNCTION_BLOCK
-VAR_GLOBAL
-   hybej:hybej_FCB;
-END_VAR
+//VAR_GLOBAL
+//   hybej:hybej_FCB;
+//END_VAR
 FUNCTION_BLOCK prazdne_FCB //FCB pro nabrani prazdnych palet a dovezeni je do nakladaci oblasti
    VAR_INPUT
       i:int;
@@ -250,9 +246,9 @@ FUNCTION_BLOCK prazdne_FCB //FCB pro nabrani prazdnych palet a dovezeni je do na
       END_IF;
    END_IF;
 END_FUNCTION_BLOCK
-VAR_GLOBAL
-   nabirani:prazdne_FCB;
-END_VAR
+//VAR_GLOBAL
+//   nabirani:prazdne_FCB;
+//END_VAR
 FUNCTION_BLOCK plne_FCB //FCB pro odvoz a odkladani plnych palet na puvodni pozici
    VAR_INPUT
       i:int;
@@ -308,40 +304,42 @@ FUNCTION_BLOCK plne_FCB //FCB pro odvoz a odkladani plnych palet na puvodni pozi
    END_IF;
 END_FUNCTION_BLOCK
 VAR_GLOBAL
+   nabirani:prazdne_FCB;
+   col:color_FCB;
+   hybej:hybej_FCB;
    vraceni:plne_FCB;
 END_VAR
-FUNCTION ridici:bool //ridici funkce, ktera spousti ve spravny cas dane funkce
+FUNCTION ridici:bool
    VAR
-      i:int:=0;
-      j:int:=0;
       blokace:bool:=0;
-      jednou:bool:=0;
-      jednou1:bool:=0;
+      horiz:int:=0;
+      verti:int:=0;
    END_VAR
-   IF probehlo_nabirani AND not blokace then
-      IF not probehlo_hybej then
-         hybej();
-      END_IF;
-      IF probehlo_hybej AND probehlo_vraceni then //zmeni polohu v regalu
-         IF i<=2 AND j<2 AND not jednou then
-            j:=j+1;
-            probehlo_hybej:=0;
-            probehlo_nabirani:=0;
-            probehlo_vraceni:=0;
-            jednou:=1;
-         ELSIF i<2 AND not jednou1 then
-            i:=i+1;
-            jednou1:=1;
+   IF not blokace then
+      IF not probehlo_nabirani then
+         nabirani(i:=verti, j:=horiz);
+      ELSE
+         IF not probehlo_hybej then
+            hybej();
          ELSE
-            blokace:=1;
+            IF not probehlo_vraceni then
+               vraceni(i:=verti, j:=horiz);
+            ELSE
+               IF verti<=2 AND horiz<2 AND probehlo_vraceni then //podminka pro posun v polich
+                  horiz:=horiz+1; //posun v horizontalnim poli
+                  probehlo_hybej:=0;
+                  probehlo_nabirani:=0;
+                  probehlo_vraceni:=0;
+               ELSIF verti<2 AND probehlo_vraceni then
+                  verti:=verti+1; //posun ve vertikalnim poli
+               ELSE
+                  blokace:=1; //zablokuje funkci po naplneni vsech palet
+               END_IF;
+            END_IF;
          END_IF;
-      ELSIF probehlo_hybej then
-         vraceni(i:=i, j:=j); //vrati naplnenou paletu na jeji polohu
       END_IF;
    ELSE
-      nabirani(i:=i, j:=j); //nabere prazdnou paletu na prislusne pozici v regalu
-      jednou:=0;
-      jednou1:=1;
+      kalibrace();
    END_IF;
 END_FUNCTION
 PROGRAM prgMain
