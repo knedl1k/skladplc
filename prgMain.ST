@@ -35,15 +35,16 @@ hlavni_barva:byte:=0;
 probehlo_hybej:bool:=0;
 probehlo_nabirani:bool:=0;
 probehlo_vraceni:bool:=0;
+nulovani:bool:=1;
 END_VAR
 FUNCTION kalibrace:bool //funkce na kalibraci jednotky
    IF not cidlo_rameno_zad then
       ram_vs:=1;
-   ELSE 
+   ELSE
       ram_vs:=0;
       IF not cidlo_horiz then
          horiz_vp:=1;
-         ELSE 
+         ELSE
             horiz_vp:=0;
       END_IF;
       IF not cidlo_verti then
@@ -77,7 +78,7 @@ FUNCTION_BLOCK color_FCB //FCB na poznavani barevneho kodovani na boku palet
    VAR_OUTPUT
       color:int:=6;
    END_VAR
-   IF (h=3 or h=6) and (a0>=5000 or a1>=5000) then //neco vjelo
+   IF (h=2 or h=6) and (a0>=5000 or a1>=5000) then //neco vjelo
       IF a0<5000 then //bily pruh dole, CERVENA
          h:=0;
       ELSIF a1<5000 then //bily pruh nahoře, MODRA
@@ -91,9 +92,9 @@ FUNCTION_BLOCK color_FCB //FCB na poznavani barevneho kodovani na boku palet
       h:=6;
    END_IF;
 END_FUNCTION_BLOCK
-//VAR_GLOBAL
-//   col:color_FCB;
-//END_VAR
+VAR_GLOBAL
+   col:color_FCB;
+END_VAR
 FUNCTION_BLOCK hybej_FCB //funkce pro rozvoz palet
    VAR_INPUT
    END_VAR
@@ -120,11 +121,11 @@ FUNCTION_BLOCK hybej_FCB //funkce pro rozvoz palet
          verti_do:=1;
          dole:=1;
       ELSIF verti_ink > 3350 AND not dole then
-         verti_na:=1;
+         //verti_na:=1;
          //nahore:=1;
       ELSE
          verti_do:=0;
-         //verti_na:=0;
+         verti_na:=0;
          pomoc1:=1;
       END_IF;
       IF horiz_ink>75 then //dojede na horizontalni polohu nakladaci oblasti
@@ -137,12 +138,14 @@ FUNCTION_BLOCK hybej_FCB //funkce pro rozvoz palet
       doprav_do:=doprav_cidlo_zad AND NOT doprav_ve and pomoc and pomoc1;
       col(a0:=cidloAnalog0,a1:=cidloAnalog1); //sken barvy
       CASE col.color OF //vypise pozadovanou barvu na displej PLC - nutne dodelat
-         3:
-            hlavni_barva:=3;
+         0:
+            hlavni_barva:=0;
          1:
             hlavni_barva:=1;
          2:
             hlavni_barva:=2;
+         6:
+            hlavni_barva:=3;
       END_CASE;
    END_IF;
    //1. část
@@ -173,13 +176,20 @@ FUNCTION_BLOCK hybej_FCB //funkce pro rozvoz palet
          verti_na:=0;
          ram_vs:=not cidlo_rameno_zad;
          odvezl:=cidlo_rameno_zad;
-         probehlo_hybej:=not ram_vs;
+         probehlo_hybej:=nulovani AND not ram_vs;
+         if probehlo_hybej then
+            pomoc:=0;
+            pomoc1:=0;
+            pomoc2:=0;
+            pomoc3:=0;
+            dole:=0;
+         end_if;
       END_IF;
    END_IF;
 END_FUNCTION_BLOCK
-//VAR_GLOBAL
-//   hybej:hybej_FCB;
-//END_VAR
+VAR_GLOBAL
+   hybej:hybej_FCB;
+END_VAR
 FUNCTION_BLOCK prazdne_FCB //FCB pro nabrani prazdnych palet a dovezeni je do nakladaci oblasti
    VAR_INPUT
       i:int;
@@ -195,6 +205,7 @@ FUNCTION_BLOCK prazdne_FCB //FCB pro nabrani prazdnych palet a dovezeni je do na
       vlevo:bool:=0;
       nahoru:bool:=0;
       dolu:bool:=0;
+      vpravo:bool:=0;
    END_VAR
    VAR_OUTPUT
       probehlo:bool:=0;
@@ -213,11 +224,12 @@ FUNCTION_BLOCK prazdne_FCB //FCB pro nabrani prazdnych palet a dovezeni je do na
          verti:=verti_ink;
          jednou:=1;
       END_IF;
-      IF horiz<PolohaHoriz[j] AND not jednou1 then //posune prepravnik na horizontalni uroven
+      IF horiz<PolohaHoriz[j] AND not jednou1 AND not vpravo then //posune prepravnik na horizontalni uroven
          horiz_vl:=1;
          vlevo:=1;
       ELSIF horiz>PolohaHoriz[j] AND not jednou1 AND not vlevo then
          horiz_vp:=1;
+         vpravo:=1;
       ELSE
          horiz_vl:=0;
          horiz_vp:=0;
@@ -230,7 +242,7 @@ FUNCTION_BLOCK prazdne_FCB //FCB pro nabrani prazdnych palet a dovezeni je do na
       ram_vy:=0;
       jednou2:=1;
       IF verti_ink>(verti-50) then //nadzvedne rameno uz s paletou
-         verti_na:=1;
+         //verti_na:=1;
          jednou3:=1;
       ELSE
          verti_na:=0;
@@ -241,14 +253,24 @@ FUNCTION_BLOCK prazdne_FCB //FCB pro nabrani prazdnych palet a dovezeni je do na
          ELSE
             ram_vs:=0;
             probehlo:=1;
-            probehlo_nabirani:=1;
+            probehlo_nabirani:=nulovani AND not ram_vs;
+            IF probehlo_nabirani then
+                  jednou:=0;
+                  jednou1:=0;
+                  jednou2:=0;
+                  jednou3:=0;
+                  vlevo:=0;
+                  nahoru:=0;
+                  dolu:=0;
+                  vpravo:=0;
+            END_IF;
          END_IF;
       END_IF;
    END_IF;
 END_FUNCTION_BLOCK
-//VAR_GLOBAL
-//   nabirani:prazdne_FCB;
-//END_VAR
+VAR_GLOBAL
+   nabirani:prazdne_FCB;
+END_VAR
 FUNCTION_BLOCK plne_FCB //FCB pro odvoz a odkladani plnych palet na puvodni pozici
    VAR_INPUT
       i:int;
@@ -295,19 +317,24 @@ FUNCTION_BLOCK plne_FCB //FCB pro odvoz a odkladani plnych palet na puvodni pozi
             ELSE
                ram_vs:=0;   //zasune rameno
                vraceno:=1;  //vrati, ze FCB probehl
-               probehlo_vraceni:=1;
+               probehlo_vraceni:=nulovani AND not ram_vs;
+               jednou:=0;
+               pomoc:=0;
+               pomoc2:=0;
+               nahoru:=0;
             END_IF;
          END_IF;
-      ELSE 
+      ELSE
          pomoc2:=1;
       END_IF;
    END_IF;
 END_FUNCTION_BLOCK
 VAR_GLOBAL
-   nabirani:prazdne_FCB;
-   col:color_FCB;
-   hybej:hybej_FCB;
    vraceni:plne_FCB;
+END_VAR
+VAR_GLOBAL
+//horiz:int:=0;
+
 END_VAR
 FUNCTION ridici:bool
    VAR
@@ -327,9 +354,12 @@ FUNCTION ridici:bool
             ELSE
                IF verti<=2 AND horiz<2 AND probehlo_vraceni then //podminka pro posun v polich
                   horiz:=horiz+1; //posun v horizontalnim poli
-                  probehlo_hybej:=0;
+                  nulovani:=0;
                   probehlo_nabirani:=0;
+                  probehlo_hybej:=0;
                   probehlo_vraceni:=0;
+                  nabirani.probehlo:=0;
+                  hybej.odvezl:=0;
                ELSIF verti<2 AND probehlo_vraceni then
                   verti:=verti+1; //posun ve vertikalnim poli
                ELSE
