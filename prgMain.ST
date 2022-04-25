@@ -35,7 +35,6 @@ hlavni_barva:byte:=0;
 probehlo_hybej:bool:=0;
 probehlo_nabirani:bool:=0;
 probehlo_vraceni:bool:=0;
-nulovani:bool:=1;
 END_VAR
 FUNCTION kalibrace:bool //funkce na kalibraci jednotky
    IF not cidlo_rameno_zad then
@@ -44,13 +43,13 @@ FUNCTION kalibrace:bool //funkce na kalibraci jednotky
       ram_vs:=0;
       IF not cidlo_horiz then
          horiz_vp:=1;
-         ELSE
-            horiz_vp:=0;
+      ELSE
+         horiz_vp:=0;
       END_IF;
       IF not cidlo_verti then
          verti_na:=1;
-         ELSE
-            verti_na:=0;
+      ELSE
+         verti_na:=0;
       END_IF;
    END_IF;
    IF cidlo_rameno_zad AND cidlo_horiz AND cidlo_verti then
@@ -91,6 +90,9 @@ FUNCTION_BLOCK color_FCB //FCB na poznavani barevneho kodovani na boku palet
       color:=h;
       h:=6;
    END_IF;
+   IF probehlo_hybej then
+      color:=6;
+   END_IF;
 END_FUNCTION_BLOCK
 VAR_GLOBAL
    col:color_FCB;
@@ -99,30 +101,23 @@ FUNCTION_BLOCK hybej_FCB //funkce pro rozvoz palet
    VAR_INPUT
    END_VAR
    VAR
-      //verti:udint;
       pomoc:bool:=0;
       pomoc1:bool:=0;
       pomoc2:bool:=0;
       pomoc3:bool:=0;
-      //pomoc4:bool:=0;
-      //jednou:bool:=0;
-      //nahore:bool:=0;
       dole:bool:=0;
+      nahore:bool:=0;
    END_VAR
    VAR_OUTPUT
       odvezl:bool:=0;
    END_VAR
-   (*IF not pomoc4 then
-      verti:=verti_ink;
-      pomoc4:=1;
-   END_IF;*)
    IF not pomoc2 then
-      IF verti_ink < 3350 then //dojede na vertikalni polohu nakladaci oblasti
+      IF verti_ink < 3350 AND not nahore then //dojede na vertikalni polohu nakladaci oblasti
          verti_do:=1;
          dole:=1;
       ELSIF verti_ink > 3350 AND not dole then
-         //verti_na:=1;
-         //nahore:=1;
+         verti_na:=1;
+         nahore:=1;
       ELSE
          verti_do:=0;
          verti_na:=0;
@@ -137,7 +132,7 @@ FUNCTION_BLOCK hybej_FCB //funkce pro rozvoz palet
       ram_vy:=not cidlo_rameno_pre and pomoc and pomoc1; //pokud je v poloze oblasti, zacne se vysouvat rameno = paleta se posadi na dopravnik v nakl. obasti
       doprav_do:=doprav_cidlo_zad AND NOT doprav_ve and pomoc and pomoc1;
       col(a0:=cidloAnalog0,a1:=cidloAnalog1); //sken barvy
-      CASE col.color OF //vypise pozadovanou barvu na displej PLC - nutne dodelat
+      CASE col.color OF //vypise pozadovanou barvu na displej PLC
          0:
             hlavni_barva:=0;
          1:
@@ -148,14 +143,9 @@ FUNCTION_BLOCK hybej_FCB //funkce pro rozvoz palet
             hlavni_barva:=3;
       END_CASE;
    END_IF;
-   //1. část
    IF nalozeno then
       pomoc2:=TRUE;
    END_IF;
-   (*IF pomoc2 AND not jednou then //znovu nastaveni vychozi verti polohy
-      verti:=verti_ink;
-      jednou:=1;
-   END_IF;*)
    IF pomoc2 AND not pomoc3 then //pokud uzivatel stiskne tlacitko, ze barevny obrok vlozil, tak se paleta vrati zpet na rameno a to se zatahne
       IF verti_ink<3400 then //rameno sjede trochu dolu
          verti_do:=1;
@@ -176,14 +166,15 @@ FUNCTION_BLOCK hybej_FCB //funkce pro rozvoz palet
          verti_na:=0;
          ram_vs:=not cidlo_rameno_zad;
          odvezl:=cidlo_rameno_zad;
-         probehlo_hybej:=nulovani AND not ram_vs;
-         if probehlo_hybej then
+         probehlo_hybej:= not ram_vs;
+         IF probehlo_hybej then
             pomoc:=0;
             pomoc1:=0;
             pomoc2:=0;
             pomoc3:=0;
             dole:=0;
-         end_if;
+            nahore:=0;
+         END_IF;
       END_IF;
    END_IF;
 END_FUNCTION_BLOCK
@@ -211,12 +202,12 @@ FUNCTION_BLOCK prazdne_FCB //FCB pro nabrani prazdnych palet a dovezeni je do na
       probehlo:bool:=0;
    END_VAR
    horiz:=horiz_ink;
-   IF verti_ink<PolohaVerti[i] AND not dolu then //posune prepravnik na vertikalni uroven
+   IF verti_ink<PolohaVerti[i] AND not nahoru then //posune prepravnik na vertikalni uroven
       verti_do:=1;
-      nahoru:=1;
-   ELSIF verti_ink>PolohaVerti[i] AND not nahoru then
-      verti_na:=1;
       dolu:=1;
+   ELSIF verti_ink>PolohaVerti[i] AND not dolu then
+      verti_na:=1;
+      nahoru:=1;
    ELSE
       verti_do:=0;
       verti_na:=0;
@@ -247,13 +238,13 @@ FUNCTION_BLOCK prazdne_FCB //FCB pro nabrani prazdnych palet a dovezeni je do na
       ELSE
          verti_na:=0;
       END_IF;
-      IF jednou3 then
+      IF jednou3 AND not verti_na then
          IF not cidlo_rameno_zad then
             ram_vs:=1;
          ELSE
             ram_vs:=0;
             probehlo:=1;
-            probehlo_nabirani:=nulovani AND not ram_vs;
+            probehlo_nabirani:=not ram_vs;
             IF probehlo_nabirani then
                   jednou:=0;
                   jednou1:=0;
@@ -317,7 +308,7 @@ FUNCTION_BLOCK plne_FCB //FCB pro odvoz a odkladani plnych palet na puvodni pozi
             ELSE
                ram_vs:=0;   //zasune rameno
                vraceno:=1;  //vrati, ze FCB probehl
-               probehlo_vraceni:=nulovani AND not ram_vs;
+               probehlo_vraceni:=not ram_vs;
                jednou:=0;
                pomoc:=0;
                pomoc2:=0;
@@ -333,35 +324,34 @@ VAR_GLOBAL
    vraceni:plne_FCB;
 END_VAR
 VAR_GLOBAL
-//horiz:int:=0;
-
+   horizontal:int:=0;
+   vertikal:int:=0;
+   blokace:bool:=0;
 END_VAR
 FUNCTION ridici:bool
    VAR
-      blokace:bool:=0;
-      horiz:int:=0;
-      verti:int:=0;
+      jednou:bool:=0;
    END_VAR
    IF not blokace then
       IF not probehlo_nabirani then
-         nabirani(i:=verti, j:=horiz);
+         nabirani(i:=vertikal, j:=horizontal);
       ELSE
          IF not probehlo_hybej then
             hybej();
          ELSE
             IF not probehlo_vraceni then
-               vraceni(i:=verti, j:=horiz);
+               vraceni(i:=vertikal, j:=horizontal);
             ELSE
-               IF verti<=2 AND horiz<2 AND probehlo_vraceni then //podminka pro posun v polich
-                  horiz:=horiz+1; //posun v horizontalnim poli
-                  nulovani:=0;
+               IF vertikal<=2 AND horizontal<2 then //podminka pro posun v polich
+                  horizontal:=horizontal+1; //posun v horizontalnim poli
                   probehlo_nabirani:=0;
                   probehlo_hybej:=0;
                   probehlo_vraceni:=0;
                   nabirani.probehlo:=0;
                   hybej.odvezl:=0;
-               ELSIF verti<2 AND probehlo_vraceni then
-                  verti:=verti+1; //posun ve vertikalnim poli
+               ELSIF vertikal<2 AND not jednou then
+                  vertikal:=vertikal+1; //posun ve vertikalnim poli
+                  jednou:=1;
                ELSE
                   blokace:=1; //zablokuje funkci po naplneni vsech palet
                END_IF;
