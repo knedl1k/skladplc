@@ -24,7 +24,7 @@ verti_ink:udint;
 //cas at %S13.2:bool;
 kalibruj:bool:=0;
 casovac:TON;
-PolohaVerti: array[0..3] of udint:=[290,2020,4000];
+PolohaVerti: array[0..3] of udint:=[290,2030,4010];
 PolohaHoriz: array[0..3] of udint:=[3629,6462,9300];
 nalozeno at %X101.0:bool;
 inkrementalni_horiz at %XL106:udint;
@@ -273,15 +273,17 @@ FUNCTION_BLOCK plne_FCB //FCB pro odvoz a odkladani plnych palet na puvodni pozi
       pomoc:bool:=0;
       pomoc2:bool:=0;
       nahoru:bool:=0;
+      dolu:bool:=0;
    END_VAR
    VAR_OUTPUT
       vraceno:bool:=0;
    END_VAR
-   IF verti_ink>PolohaVerti[i] AND not pomoc then //posune prepravnik na vertikalni uroven
+   IF verti_ink>PolohaVerti[i] AND not pomoc AND not dolu then //posune prepravnik na vertikalni uroven
       verti_na:=1;
       nahoru:=1;
    ELSIF verti_ink<PolohaVerti[i] AND not pomoc AND not nahoru then
       verti_do:=1;
+      dolu:=1;
    ELSE
       verti_na:=0;
       verti_do:=0;
@@ -329,9 +331,6 @@ VAR_GLOBAL
    blokace:bool:=0;
 END_VAR
 FUNCTION ridici:bool
-   VAR
-      jednou:bool:=0;
-   END_VAR
    IF not blokace then
       IF not probehlo_nabirani then
          nabirani(i:=vertikal, j:=horizontal);
@@ -342,18 +341,21 @@ FUNCTION ridici:bool
             IF not probehlo_vraceni then
                vraceni(i:=vertikal, j:=horizontal);
             ELSE
-               IF vertikal<=2 AND horizontal<2 then //podminka pro posun v polich
+               IF horizontal<2 then //podminka pro posun v polich
                   horizontal:=horizontal+1; //posun v horizontalnim poli
                   probehlo_nabirani:=0;
                   probehlo_hybej:=0;
                   probehlo_vraceni:=0;
                   nabirani.probehlo:=0;
                   hybej.odvezl:=0;
-               ELSIF vertikal<2 AND not jednou then
-                  vertikal:=vertikal+1; //posun ve vertikalnim poli
-                  jednou:=1;
-               ELSE
-                  blokace:=1; //zablokuje funkci po naplneni vsech palet
+               END_IF;
+               IF horizontal=2 AND probehlo_vraceni then
+                  IF vertikal<2 then
+                     vertikal:=vertikal+1;
+                     horizontal:=-1;
+                  ELSE
+                     blokace:=1;
+                  END_IF;
                END_IF;
             END_IF;
          END_IF;
