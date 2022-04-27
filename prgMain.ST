@@ -31,7 +31,7 @@ inkrementalni_horiz at %XL106:udint;
 inkrementalni_verti at %XL116:udint;
 ridSlovo at %YW20:uint;
 ridSlovo1 at %YW26:uint;
-hlavni_barva:byte:=0;
+hlavni_barva:byte:=3;
 probehlo_hybej:bool:=0;
 probehlo_nabirani:bool:=0;
 probehlo_vraceni:bool:=0;
@@ -166,8 +166,7 @@ FUNCTION_BLOCK hybej_FCB //funkce pro rozvoz palet
          verti_na:=0;
          ram_vs:=not cidlo_rameno_zad;
          odvezl:=cidlo_rameno_zad;
-         probehlo_hybej:= not ram_vs;
-         IF probehlo_hybej then
+         IF odvezl then
             pomoc:=0;
             pomoc1:=0;
             pomoc2:=0;
@@ -244,17 +243,15 @@ FUNCTION_BLOCK prazdne_FCB //FCB pro nabrani prazdnych palet a dovezeni je do na
          ELSE
             ram_vs:=0;
             probehlo:=1;
-            probehlo_nabirani:=not ram_vs;
-            IF probehlo_nabirani then
-                  jednou:=0;
-                  jednou1:=0;
-                  jednou2:=0;
-                  jednou3:=0;
-                  vlevo:=0;
-                  nahoru:=0;
-                  dolu:=0;
-                  vpravo:=0;
-            END_IF;
+            jednou:=0;
+            jednou1:=0;
+            jednou2:=0;
+            jednou3:=0;
+            vlevo:=0;
+            nahoru:=0;
+            dolu:=0;
+            vpravo:=0;
+            vlevo:=0;
          END_IF;
       END_IF;
    END_IF;
@@ -310,11 +307,12 @@ FUNCTION_BLOCK plne_FCB //FCB pro odvoz a odkladani plnych palet na puvodni pozi
             ELSE
                ram_vs:=0;   //zasune rameno
                vraceno:=1;  //vrati, ze FCB probehl
-               probehlo_vraceni:=not ram_vs;
+               //probehlo_vraceni:=not ram_vs;
                jednou:=0;
                pomoc:=0;
                pomoc2:=0;
                nahoru:=0;
+               dolu:=0;
             END_IF;
          END_IF;
       ELSE
@@ -332,24 +330,23 @@ VAR_GLOBAL
 END_VAR
 FUNCTION ridici:bool
    IF not blokace then
-      IF not probehlo_nabirani then
+      IF not nabirani.probehlo then
          nabirani(i:=vertikal, j:=horizontal);
       ELSE
-         IF not probehlo_hybej then
+         IF not hybej.odvezl then
             hybej();
          ELSE
-            IF not probehlo_vraceni then
+            IF not vraceni.vraceno then
+               //hlavni_barva:=3;
                vraceni(i:=vertikal, j:=horizontal);
             ELSE
                IF horizontal<2 then //podminka pro posun v polich
                   horizontal:=horizontal+1; //posun v horizontalnim poli
-                  probehlo_nabirani:=0;
-                  probehlo_hybej:=0;
-                  probehlo_vraceni:=0;
                   nabirani.probehlo:=0;
                   hybej.odvezl:=0;
+                  vraceni.vraceno:=0;
                END_IF;
-               IF horizontal=2 AND probehlo_vraceni then
+               IF horizontal=2 AND vraceni.vraceno then
                   IF vertikal<2 then
                      vertikal:=vertikal+1;
                      horizontal:=-1;
