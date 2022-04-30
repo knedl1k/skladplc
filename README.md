@@ -27,4 +27,4 @@ V tomto projektu je použitý jazyk Structured Text. -DOPLNIT-
 -DOPLNIT- 
 <br>
 <h2>License</h2>
--DOPLNIT- 
+GNU General Public License v3.0
