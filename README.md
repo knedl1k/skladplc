@@ -32,7 +32,7 @@ V tomto projektu je použitý jazyk Structured Text. -DOPLNIT-
       <th style="text-align:center">vstup/výstup</th>
       <th style="text-align:center">jednotka</th>
       <th style="text-align:center">bit číslo</th>
-      <th style="text-align:center">D9 konektor pin č.9</th>
+      <th style="text-align:center">D9 konektor<br>pin č.9</th>
       <th style="text-align:center">popis</th>
     </tr>
   </thead>
