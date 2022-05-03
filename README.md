@@ -32,7 +32,7 @@ V tomto projektu je použitý jazyk Structured Text. -DOPLNIT-
       <th style="text-align:center">vstup/výstup</th>
       <th style="text-align:center">jednotka</th>
       <th style="text-align:center">bit číslo</th>
-      <th style="text-align:center">D9 konektor<br>pin č.9</th>
+      <th style="text-align:center">D9 konektor<br>pin č.</th>
       <th style="text-align:center">popis</th>
     </tr>
   </thead>
@@ -170,7 +170,7 @@ V tomto projektu je použitý jazyk Structured Text. -DOPLNIT-
       <td style="text-align:center">Q1 (M1)</td>
       <td style="text-align:center">OS1401</td>
       <td style="text-align:center">4-žlutá</td>
-      <td rowspan="9" style="padding 8px;">8 datových bitů, „+“<br>zdroje pro periferie,<br>„+“ zdroje systémového<br>a zem</td>
+      <td rowspan="9" style="padding 8px;">8 datových bitů, „+“<br>zdroje pro periferie,<br>„+“ zdroje<br>systémového a zem</td>
       <td style="text-align:center">motor dopravníku vpřed</td>
     </tr>
     <tr>
