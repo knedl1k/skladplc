@@ -16,7 +16,7 @@ Jedná se o automatický vysokozdvižný sklad, který dokáže třídit palety 
 <br>
 <h4>Infračervené senzory</h4>
 <i>Slouží pro identifikaci černé stopy na bílém pozadí. Jedná se fakticky o čárový kód.</i>
-<img src="obroky2.png">
+<img src="ilustrace/obroky2.png">
 <h4>Světelné závory</h4>
 <i>Dvojice těchto závor se používá v nakládací oblasti. Pomocí jejich výstupních hodnot se určuje, v závislosti na dalších podmínkách, jestli se přepravník oblasti pohybuje směrem dovnitř nebo ven.</i>
 <br>
@@ -24,7 +24,7 @@ Jedná se o automatický vysokozdvižný sklad, který dokáže třídit palety 
 V tomto projektu je použitý jazyk Structured Text. -DOPLNIT- 
 <br>
 <h2>Zapojení</h2>
-<img src="sklad_vyznacene.png"> 
+<img src="ilustrace/sklad_vyznacene.png"> 
 <table>
   <thead>
     <tr>
