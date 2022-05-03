@@ -1,5 +1,5 @@
 <h1>Automatizovaný sklad pomocí PLC</h1>
-Jedná se o automatický vysokozdvižný sklad, který dokáže třídit palety dle čárového kódu. Pracovníci pouze kontrolují, že stroj pracuje správně a mačkají tlačítka při vkládání barevných obrobků. Model skladu je 
+Jedná se o automatický vysokozdvižný sklad, který dokáže třídit palety dle čárového kódu. Pracovníci pouze kontrolují, že stroj pracuje správně a mačkají tlačítka při vkládání barevných obrobků. Model skladu je -DOPLNIT-
 <br>
 <h2>Použité součástky</h2>
 <h4>Programovatelný automat</h4>
