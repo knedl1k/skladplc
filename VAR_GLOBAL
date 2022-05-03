@@ -1,0 +1,32 @@
+VAR_GLOBAL
+cidloAnalog0 at %XW34:int; //dolni cidlo na dopravniku - poznava barevny kod na palete
+cidloAnalog1 at %XW46:int; //horni cidlo na dopravniku - poznava barevny kod na palete
+cidlo_horiz at %X100.4:bool; //mechanicke cidlo na horizontalni ose prepravniku
+cidlo_verti at %X100.7:bool; //mechanicke cidlo na vertikalni ose prepravniku
+cidlo_rameno_zad at %X10.7:bool; //mechanicke cidlo v zadni casti ramena prepravniku
+cidlo_rameno_pre at %X10.6:bool; //mechanicke cidlo v predni casti ramena prepravniku
+doprav_cidlo_zad at %X100.6:bool;  //svetelna brana dopravniku vzadu
+doprav_cidlo_pre at %X100.5:bool; // svetelna brana dopravniku vpredu
+horiz_ink at %XL106:udint;
+verti_ink at %XL116:udint;
+ridSlovo at %YW20:uint;
+ridSlovo1 at %YW26:uint;
+//zk0 at %X101.0:bool; //pro manualni ovladani
+//zk1 at %X101.1:bool;
+//zk2 at %X101.2:bool;
+//zk3 at %X101.3:bool;
+doprav_do at %Y32.4:bool; //pohon dopravniku - dovnitr
+doprav_ve at %Y32.5:bool; //pohon dopravniku - ven
+horiz_vl at %Y32.6:bool; //horizontalni, vlevo:ccw
+horiz_vp at %Y32.7:bool; //horizontalni, vpravo:cw
+verti_do at %Y33.0:bool; //vertikalni, dolu
+verti_na at %Y33.1:bool; //vertikalni, nahoru
+ram_vy at %Y33.2:bool; //rameno, vysun
+ram_vs at %Y33.3:bool; //rameno, vsun
+PolohaVerti: array[0..3] of udint:=[310,2050,4030]; //ulozene vertikalni hodnoty regalu
+PolohaHoriz: array[0..3] of udint:=[3629,6462,9300]; //ulozene horizontalni hodnoty regalu
+nalozeno at %X101.0:bool;
+kalibruj:bool:=0;
+casovac:TON;
+hlavni_barva:byte:=3;
+END_VAR
