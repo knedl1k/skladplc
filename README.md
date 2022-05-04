@@ -226,4 +226,5 @@ V tomto projektu je použitý jazyk Structured Text. -DOPLNIT-
 </table>
 <h2>License</h2>
 GNU General Public License v3.0
+<br>
 ©2022 knedl1k
