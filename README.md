@@ -26,7 +26,7 @@ Slouží pro identifikaci černé stopy na bílém pozadí. Jedná se fakticky o
 Dvojice těchto závor se používá v nakládací oblasti. Pomocí jejich výstupních hodnot se určuje, v závislosti na dalších podmínkách, jestli se přepravník oblasti pohybuje směrem dovnitř nebo ven.
 <br>
 <h2>Software</h2>
-V tomto projektu je použitý jazyk Structured Text. -DOPLNIT- 
+V tomto projektu je použitý jazyk Structured Text. Využívá se několika funkcí, funkčních bloků a časovače. 
 <br>
 <h2>Zapojení</h2>
 <img src="ilustrace/sklad_vyznacene.png"> 
@@ -229,6 +229,7 @@ V tomto projektu je použitý jazyk Structured Text. -DOPLNIT-
     </tr>
   </tbody>
 </table>
+Zdroj +24 V pro akční členy je použit HDR-100-24 (dává 3,83 A). Zdroj pro CPU a senzory HDR-60-24 (dává 2,5 A).
 <h2>License</h2>
 GNU General Public License v3.0
 <br><br>
