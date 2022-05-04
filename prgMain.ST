@@ -47,7 +47,7 @@ FUNCTION kalibrace:bool //funkce na kalibraci jednotky
       END_IF;
    END_IF;
    IF cidlo_rameno_zad AND cidlo_horiz AND cidlo_verti then //"vrati", ze probehla funkce
-      kalibrace:=1; 
+      kalibrace:=1;
    END_IF;
 END_FUNCTION
 (*
@@ -84,9 +84,6 @@ FUNCTION_BLOCK barva_FCB //FCB na poznavani barevneho kodovani na boku palet
       color:=h;
       h:=6;
    END_IF;
-   IF hybej.odvezl then
-      color:=6;
-   END_IF;
 END_FUNCTION_BLOCK
 VAR_GLOBAL
    barva:barva_FCB;
@@ -117,7 +114,7 @@ FUNCTION_BLOCK hybej_FCB //funkce pro rozvoz palet
          verti_na:=0;
          vertikalne:=1;
       END_IF;
-      IF horiz_ink>75 then //dojede na horizontalni polohu nakladaci oblasti 
+      IF horiz_ink>75 then //dojede na horizontalni polohu nakladaci oblasti
          horiz_vp:=1;
       ELSE
          horiz_vp:=0;
@@ -125,8 +122,8 @@ FUNCTION_BLOCK hybej_FCB //funkce pro rozvoz palet
       END_IF;
       ram_vy:=not cidlo_rameno_pre AND vertikalne AND horizontalne; //paleta se posadi na dopravnik v nakl. obasti
       doprav_do:=doprav_cidlo_zad AND not doprav_ve AND vertikalne AND horizontalne; //dopravnik posune paletu dovnitr
-      barvuj(a0:=cidloAnalog0,a1:=cidloAnalog1); //sken barvy
-      CASE barvuj.color OF //vypise pozadovanou barvu na displej PLC pres PanelMaker
+      barva(a0:=cidloAnalog0,a1:=cidloAnalog1); //sken barvy
+      CASE barva.color OF //vypise pozadovanou barvu na displej PLC pres PanelMaker
          0:
             hlavni_barva:=0;
          1:
@@ -137,7 +134,7 @@ FUNCTION_BLOCK hybej_FCB //funkce pro rozvoz palet
             hlavni_barva:=3;
       END_CASE;
    END_IF;
-   IF nalozeno then //pokud je zmacklo tlacitko, nastavi pomocnou 
+   IF nalozeno then //pokud je zmacklo tlacitko, nastavi pomocnou
       zmacknute:=TRUE;
    END_IF;
    IF zmacknute AND not plna then //pokud uzivatel stiskne tlacitko, ze barevny obrok vlozil, tak se paleta vrati zpet na rameno a to se zatahne
@@ -204,10 +201,10 @@ FUNCTION_BLOCK nabirani_FCB //FCB pro nabrani prazdnych palet a dovezeni je do n
       verti_do:=0;
       verti_na:=0;
       vertikalne:=1;
-   END_IF;
-   IF not jednou then
-      verti:=verti_ink;
-      jednou:=1;
+      IF not jednou then
+         verti:=verti_ink;
+         jednou:=1;
+      END_IF;
    END_IF;
    IF horiz_ink<PolohaHoriz[j] AND not vpravo AND not horizontalne then //posune prepravnik na horizontalni uroven
       horiz_vl:=1;
@@ -229,10 +226,10 @@ FUNCTION_BLOCK nabirani_FCB //FCB pro nabrani prazdnych palet a dovezeni je do n
          verti_na:=1;
       ELSE
          verti_na:=0;
-         nadzvednuto:1;
+         nadzvednuto:=1;
       END_IF;
       IF nadzvednuto then
-         IF not cidlo_rameno_zad then 
+         IF not cidlo_rameno_zad then
             ram_vs:=1;
          ELSE
             ram_vs:=0;
@@ -264,6 +261,8 @@ FUNCTION_BLOCK vraceni_FCB //FCB pro odvoz a odkladani plnych palet na puvodni p
       vysunute:bool:=0;
       nahoru:bool:=0;
       dolu:bool:=0;
+      vertikalne:bool:=0;
+      horizontalne:bool:=0;
    END_VAR
    VAR_OUTPUT
       vraceno:bool:=0;
@@ -278,10 +277,10 @@ FUNCTION_BLOCK vraceni_FCB //FCB pro odvoz a odkladani plnych palet na puvodni p
       verti_na:=0;
       verti_do:=0;
       vertikalne:=1;
-   END_IF;
-   IF not jednou then
-      verti:=verti_ink;
-      jednou:=1;
+      IF not jednou then
+         verti:=verti_ink;
+         jednou:=1;
+      END_IF;
    END_IF;
    IF horiz_ink<PolohaHoriz[j] AND not horizontalne then //posune prepravnik na horizontalni uroven
       horiz_vl:=1;
@@ -290,12 +289,12 @@ FUNCTION_BLOCK vraceni_FCB //FCB pro odvoz a odkladani plnych palet na puvodni p
       horizontalne:=1;
    END_IF;
    IF not cidlo_rameno_pre AND not vysunute AND horizontalne AND vertikalne then //vysune rameno
-      ram_vy:=1; 
-   ELSE
+      ram_vy:=1;
+   ELSIF cidlo_rameno_pre AND not vysunute AND horizontalne AND vertikalne then
       ram_vy:=0;
       vysunute:=1;
    END_IF;
-   IF verti_ink<(verti+200) AND vysunute then //vysunute rameno posune dolu, paleta zustane v regalu
+   IF verti_ink<(verti+50) AND vysunute then //vysunute rameno posune dolu, paleta zustane v regalu
       verti_do:=1;
    ELSIF vysunute then
       verti_do:=0;
@@ -308,6 +307,8 @@ FUNCTION_BLOCK vraceni_FCB //FCB pro odvoz a odkladani plnych palet na puvodni p
          vysunute:=0;
          nahoru:=0;
          dolu:=0;
+         vertikalne:=0;
+         horizontalne:=0;
       END_IF;
    END_IF;
 END_FUNCTION_BLOCK
@@ -328,7 +329,7 @@ FUNCTION ridici:bool
             hybej();
          ELSE
             IF not vraceni.vraceno then
-               //hlavni_barva:=3;
+               hlavni_barva:=3;
                vraceni(i:=vertikal, j:=horizontal);
             ELSE
                IF horizontal<2 then //podminka pro posun v polich
@@ -353,9 +354,6 @@ FUNCTION ridici:bool
    END_IF;
 END_FUNCTION
 PROGRAM prgMain
-VAR
-   cidlo0, cidlo1:INT;
-END_VAR
 IF not kalibruj then //uvodni kalibrace, zajisti, ze po spusteni se system vzdy nejdrive zkalibruje
    kalibruj:=kalibrace();
 ELSE
@@ -365,7 +363,7 @@ ELSE
       //manualni();
       ridici(); //hlavni ridici funkce
    ELSE
-      ridSlovo:=2; //vyresetuje hodnotu inkr. snimacu 
+      ridSlovo:=2; //vyresetuje hodnotu inkr. snimacu
       ridSlovo1:=2;
       casovac(IN:=1, PT:=T#1s); //prodleva pro korektni serizeni snimacu
    END_IF;
