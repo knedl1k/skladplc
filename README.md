@@ -48,7 +48,7 @@ V tomto projektu je použitý jazyk Structured Text. Využívá se několika fun
       <td style="text-align:center"></td>
       <td style="text-align:center">hnědá</td>
       <td style="text-align:center">4, 5</td>
-      <td style="text-align:center">Zdroj + 24 V pro akční členy</td>
+      <td style="text-align:center">Zdroj +24 V pro akční členy</td>
     </tr>
     <tr>
       <td style="text-align:center">2</td>
@@ -56,7 +56,7 @@ V tomto projektu je použitý jazyk Structured Text. Využívá se několika fun
       <td style="text-align:center"></td>
       <td style="text-align:center">zelená</td>
       <td style="text-align:center">4, 5</td>
-      <td style="text-align:center">Zdroj + 24 V pro senzory</td>
+      <td style="text-align:center">Zdroj +24 V pro senzory</td>
     </tr>
     <tr>
       <td style="text-align:center">3</td>
