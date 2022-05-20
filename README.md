@@ -4,7 +4,7 @@
         <img src="https://img.shields.io/badge/License-GNU%20v3.0-informational" /></a>
     <img src="https://img.shields.io/badge/HW-Tecomat-brightgreen" />
 </p>
-<i>Jedná se o automatický vysokozdvižný sklad, který dokáže třídit palety dle čárového kódu. Pracovníci pouze kontrolují, že stroj pracuje správně a mačkají tlačítka při vkládání barevných obrobků. Model skladu je -DOPLNIT- </i>
+<i>Jedná se o automatický vysokozdvižný sklad, který dokáže třídit palety dle čárového kódu. Pracovníci pouze kontrolují, že stroj pracuje správně a mačkají tlačítka při vkládání barevných obrobků. Model skladu je od firmy Fischertechnik, modelové číslo 536631. </i>
 <br>
 <h2>Zapojení</h2>
 <img src="ilustrace/sklad_vyznacene.png"> 
