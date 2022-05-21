@@ -229,7 +229,7 @@ Slouží pro identifikaci černé stopy na bílém pozadí. Jedná se fakticky o
 Dvojice těchto závor se používá v nakládací oblasti. Pomocí jejich výstupních hodnot se určuje, v závislosti na dalších podmínkách, jestli se přepravník oblasti pohybuje směrem dovnitř nebo ven.
 <br>
 <h2>Software</h2>
-V tomto projektu je použitý jazyk Structured Text. Využívá se několika funkcí, funkčních bloků a časovače. 
+V tomto projektu je použitý jazyk Structured Text. Využívá se několika vlastních funkcí, funkčních bloků a časovače. V případě potřeby údržby skladu stačí zakomentovat řádek s voláním funkce ridici() a naopak zapnout funkci manualni(), po té je možné ovládat sklad ručně pomocí panelu.
 <br>
 <h2>License</h2>
 GNU General Public License v3.0
