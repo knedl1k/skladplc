@@ -4,7 +4,7 @@
         <img src="https://img.shields.io/badge/License-GNU%20v3.0-informational" /></a>
     <img src="https://img.shields.io/badge/HW-Tecomat-brightgreen" />
 </p>
-<i>Jedná se o automatický vysokozdvižný sklad, který dokáže třídit palety dle čárového kódu. Pracovníci pouze kontrolují, že stroj pracuje správně a mačkají tlačítka při vkládání barevných obrobků. Model skladu je od firmy Fischertechnik, modelové číslo 536631. </i>
+<i>Jedná se o automatický vysokozdvižný sklad, který dokáže třídit palety dle čárového kódu. Pracovníci pouze kontrolují, že stroj pracuje správně a mačkají tlačítka při vkládání barevných obrobků. Model skladu je od firmy Fischertechnik, modelové číslo 536631.</i>
 <br>
 <h2>Zapojení</h2>
 <img src="ilustrace/sklad_vyznacene.png"> 
@@ -207,31 +207,23 @@
     </tr>
   </tbody>
 </table>
-Zdroj +24 V pro akční členy je použit HDR-100-24 (dává 3,83 A). Zdroj pro CPU a senzory HDR-60-24 (dává 2,5 A).
-<br>
+<p>Zdroj +24 V pro akční členy je použit HDR-100-24 (dává 3,83 A). Zdroj pro CPU a senzory HDR-60-24 (dává 2,5 A).</p>
 <h2>Použité součástky</h2>
 <h4>Programovatelný automat</h4>
-Automat je vybaven základním modulem – procesorem CP-1014 a rozšiřující moduly IB-1301 a OS-1401.
-<br>
+<p>Automat je vybaven základním modulem – procesorem CP-1014 a rozšiřující moduly IB-1301 a OS-1401.</p>
 <h4>Stejnosměrné motory</h4>
-Dva motory se snímači a dva bez snímače. Všechny motory jsou spínány dvojící relé.
-<br>
+<p>Dva motory se snímači a dva bez snímače. Všechny motory jsou spínány dvojící relé.</p>
 <h4>Inkrementální snímače</h4>
-Tyto snímače jsou hlavní výsadou skladu, využívá se jich při pohybu mezi jednotlivými částmi regálu a při pohybu s paletou do nákladací oblasti.
-<br>
+<p>Tyto snímače jsou hlavní výsadou skladu, využívá se jich při pohybu mezi jednotlivými částmi regálu a při pohybu s paletou do nákladací oblasti.</p>
 <h4>Koncové spínače</h4>
-První koncový spínač se nachází na vertikální ose a druhý na horizontální. Ty jsou určeny převážně pro kalibrační potřeby. Další dva spínače jsou použity na výsuvném rameni podavače. Ty jsou určeny pro určení, jestli je rameno plně vysunuté, nebo plně zatažené.
-<br>
+<p>První koncový spínač se nachází na vertikální ose a druhý na horizontální. Ty jsou určeny převážně pro kalibrační potřeby. Další dva spínače jsou použity na výsuvném rameni podavače. Ty jsou určeny pro určení, jestli je rameno plně vysunuté, nebo plně zatažené.</p>
 <h4>Infračervené senzory</h4>
-Slouží pro identifikaci černé stopy na bílém pozadí. Jedná se fakticky o čárový kód.
+<p>Slouží pro identifikaci černé stopy na bílém pozadí. Jedná se fakticky o čárový kód.</p>
 <img src="ilustrace/obroky2.png">
 <h4>Světelné závory</h4>
-Dvojice těchto závor se používá v nakládací oblasti. Pomocí jejich výstupních hodnot se určuje, v závislosti na dalších podmínkách, jestli se přepravník oblasti pohybuje směrem dovnitř nebo ven.
-<br>
+<p>Dvojice těchto závor se používá v nakládací oblasti. Pomocí jejich výstupních hodnot se určuje, v závislosti na dalších podmínkách, jestli se přepravník oblasti pohybuje směrem dovnitř nebo ven.</p>
 <h2>Software</h2>
-V tomto projektu je použitý jazyk Structured Text. Využívá se několika vlastních funkcí, funkčních bloků a časovače. V případě potřeby údržby skladu stačí zakomentovat řádek s voláním funkce ridici() a naopak zapnout funkci manualni(), po té je možné ovládat sklad ručně pomocí panelu.
-<br>
+<p>V tomto projektu je použitý jazyk Structured Text. Využívá se několika vlastních funkcí, funkčních bloků a časovače. V případě potřeby údržby skladu stačí zakomentovat řádek s voláním funkce ridici() a naopak zapnout funkci manualni(), po té je možné ovládat sklad ručně pomocí panelu.</p>
 <h2>License</h2>
-GNU General Public License v3.0
-<br><br>
-©2022 knedl1k
+<p>GNU General Public License v3.0</p>
+<p>©2022 knedl1k</p>
